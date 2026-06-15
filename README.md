@@ -46,6 +46,38 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 
 Restart Codex after installation.
 
+## `handoff` origin and differences
+
+The `handoff` skill was derived from Matt Pocock's original productivity
+[`handoff` skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md).
+
+The original is a compact instruction-only skill: it asks the agent to summarize
+the current conversation into a handoff document, save it to the OS temp
+directory, include suggested skills, reference existing artifacts instead of
+duplicating them, redact secrets, and use the user's argument as the next-session
+focus.
+
+This version keeps the continuation idea, but makes it more operational for
+Codex:
+
+- creates both a handoff file and a ready-to-use prompt for a fresh Codex chat;
+- treats handoff as transfer of working state, not a chronological summary;
+- saves project-related handoffs in the nearest project root, falling back to
+  the OS temp directory only for projectless work;
+- uses stable names like `handoff-<topic>.md` and creates numbered versions
+  instead of overwriting existing files;
+- separates decisions, constraints, artifacts, completed work, remaining work,
+  and the next concrete action;
+- optionally separates confirmed facts, assumptions, and items that must be
+  verified when uncertainty matters;
+- suggests only skills that are actually available, and omits the section rather
+  than inventing names when the skill list cannot be inspected;
+- adapts to non-development work by preserving relevant audience, outcome,
+  format, tone, channel, stakeholder constraints, accepted or rejected
+  directions, and usefulness criteria;
+- removes `argument-hint` from frontmatter to match Codex's `name` +
+  `description` skill metadata convention.
+
 ## `zoom-out` origin and differences
 
 The `zoom-out` skill was inspired by Matt Pocock's original engineering-focused
