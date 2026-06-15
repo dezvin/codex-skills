@@ -7,6 +7,7 @@ Personal Agent Skills for Codex.
 | Skill | Description |
 | --- | --- |
 | [`handoff`](skills/handoff) | Create a compact continuation handoff and a ready-to-use prompt for a fresh Codex chat. |
+| [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Build, adapt, repair, and structure portable image prompts without generating images. |
 | [`zoom-out`](skills/zoom-out) | Step back from a local request, map the wider system, verify decision-critical foundations, and return with a better execution frame. |
 
 ## Install a skill
@@ -28,6 +29,11 @@ https://github.com/dezvin/codex-skills/tree/main/skills/handoff
 ```text
 Use $skill-installer to install the zoom-out skill from:
 https://github.com/dezvin/codex-skills/tree/main/skills/zoom-out
+```
+
+```text
+Use $skill-installer to install the universal-visual-prompt-builder skill from:
+https://github.com/dezvin/codex-skills/tree/main/skills/universal-visual-prompt-builder
 ```
 
 Or run the installer script directly:
@@ -69,6 +75,10 @@ This version keeps that core move, but expands it into a broader Codex workflow:
 ```text
 skills/
   handoff/
+    SKILL.md
+  universal-visual-prompt-builder/
+    agents/
+    references/
     SKILL.md
   zoom-out/
     SKILL.md
