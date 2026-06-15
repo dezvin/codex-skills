@@ -64,6 +64,9 @@ Some skills are project-scoped systems rather than standalone global skills.
 They work best with a root `AGENTS.md` routing contract and project files that
 must be installed into the current project.
 
+These installers are bootstrap documents: they do not duplicate skill file
+contents. The canonical skill contents live under `skills/<skill-name>/`.
+
 - `manage-project-tasks` uses `TODO.md`, a task archive path, and root
   `AGENTS.md` rules so Codex knows when durable task state must be preserved.
 - `nearest-clarity` can integrate with `TODO.md` for durable state and expects
