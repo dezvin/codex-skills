@@ -66,6 +66,9 @@ must be installed into the current project.
 
 These installers are bootstrap documents: they do not duplicate skill file
 contents. The canonical skill contents live under `skills/<skill-name>/`.
+If a project-local skill already exists, update it in place only after
+confirming it is the same compatible workflow; the installer helper itself
+aborts on existing destination directories.
 
 - `manage-project-tasks` uses `TODO.md`, a task archive path, and root
   `AGENTS.md` rules so Codex knows when durable task state must be preserved.

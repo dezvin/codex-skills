@@ -13,6 +13,10 @@ The canonical skill files are not embedded in this document. They live in:
 
 `skills/nearest-clarity/`
 
+Direct skill URL:
+
+`https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity`
+
 Do not recreate `SKILL.md`, `agents/openai.yaml`, or `references/method.md`
 from this installer. Copy or install them exactly from the repository path
 above.
@@ -88,19 +92,41 @@ If `zoom-out` is unavailable, do not claim a complete installation. You may
 prepare the project layer, but the final status must say that the dependency is
 missing.
 
+If the user wants a complete installation and `zoom-out` is missing, ask for
+permission to install the global `zoom-out` skill from:
+
+`https://github.com/dezvin/codex-skills/tree/main/skills/zoom-out`
+
+After installing a global skill, tell the user to restart Codex before relying
+on automatic skill discovery.
+
 ## 4. Install The Skill From GitHub
 
 Install the project skill into:
 
 `<project-root>/.agents/skills/nearest-clarity/`
 
-Preferred command when the local skill installer is available:
+Replace `<project-root>` with the resolved absolute project root. Do not keep
+angle brackets in commands.
+
+Preferred PowerShell command when the local skill installer is available and
+the destination skill directory does not yet exist:
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
   --repo dezvin/codex-skills `
   --path skills/nearest-clarity `
   --dest "<project-root>\.agents\skills"
+```
+
+Preferred bash/zsh command when the local skill installer is available and the
+destination skill directory does not yet exist:
+
+```bash
+python "$HOME/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py" \
+  --repo dezvin/codex-skills \
+  --path skills/nearest-clarity \
+  --dest "<project-root>/.agents/skills"
 ```
 
 Expected structure:
@@ -118,10 +144,41 @@ If the installer script is unavailable, copy the directory
 `skills/nearest-clarity/` from the repository exactly. Do not hand-edit the
 skill content during installation.
 
+Important: `install-skill-from-github.py` aborts if the destination skill
+directory already exists. If
+`<project-root>/.agents/skills/nearest-clarity/` already exists, do not treat
+that abort as installation failure. Use the existing-skill path below.
+
+If a same-name skill already exists:
+
+- inspect its `SKILL.md` frontmatter and purpose;
+- update the expected files in place if it is the same system or a previous
+  compatible version;
+- copy the expected files exactly from
+  `https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity`;
+- do not merge old and new reference content by hand;
+- if extra non-technical files are present, list them and ask before deleting
+  them;
+- stop and ask if it has a different purpose or unknown user extensions.
+
 Do not create `README.md`, `INSTALLATION_GUIDE.md`, `QUICK_REFERENCE.md`,
 `CHANGELOG.md`, or a copy of this installer inside the skill.
 
-## 5. Root AGENTS.md Contract
+## 5. Root AGENTS.md Merge Rule
+
+Update `AGENTS.md` by meaning, not by blind append.
+
+1. If a `Nearest Clarity Work Mode` section already exists, replace or update
+   that section.
+2. If a nearby uncertainty, iteration, planning, or Zoom out policy exists
+   under another heading, fold it into one Nearest Clarity section.
+3. Preserve unrelated project instructions, style, and heading level.
+4. Leave exactly one active uncertainty/iteration routing policy for this
+   method.
+5. Do not leave installer URLs, installation history, full method text,
+   reference text, or copied skill content in `AGENTS.md`.
+
+## 6. Root AGENTS.md Contract
 
 Add or update exactly one Nearest Clarity routing section in root `AGENTS.md`.
 
@@ -155,7 +212,7 @@ If `AGENTS.md` already contains a nearby uncertainty, iteration, planning, or
 Zoom out section, update the existing section by meaning. Do not add a second
 competing policy.
 
-## 6. Task System Compatibility
+## 7. Task System Compatibility
 
 Installing this workflow does not create a task system.
 
@@ -171,7 +228,7 @@ If the project already uses `TODO.md` or `manage-project-tasks`:
 
 If there is no task system, do nothing task-related.
 
-## 7. Validation
+## 8. Validation
 
 After the setup batch:
 

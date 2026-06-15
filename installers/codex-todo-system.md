@@ -12,6 +12,10 @@ The canonical skill files are not embedded in this document. They live in:
 
 `skills/manage-project-tasks/`
 
+Direct skill URL:
+
+`https://github.com/dezvin/codex-skills/tree/main/skills/manage-project-tasks`
+
 Do not recreate `SKILL.md`, `agents/openai.yaml`, or reference files from this
 installer. Copy or install them exactly from the repository path above.
 
@@ -95,13 +99,27 @@ Install the project skill into:
 
 `<project-root>/.agents/skills/manage-project-tasks/`
 
-Preferred command when the local skill installer is available:
+Replace `<project-root>` with the resolved absolute project root. Do not keep
+angle brackets in commands.
+
+Preferred PowerShell command when the local skill installer is available and
+the destination skill directory does not yet exist:
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
   --repo dezvin/codex-skills `
   --path skills/manage-project-tasks `
   --dest "<project-root>\.agents\skills"
+```
+
+Preferred bash/zsh command when the local skill installer is available and the
+destination skill directory does not yet exist:
+
+```bash
+python "$HOME/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py" \
+  --repo dezvin/codex-skills \
+  --path skills/manage-project-tasks \
+  --dest "<project-root>/.agents/skills"
 ```
 
 Expected structure:
@@ -120,15 +138,42 @@ If the installer script is unavailable, copy the directory
 `skills/manage-project-tasks/` from the repository exactly. Do not hand-edit the
 skill content during installation.
 
+Important: `install-skill-from-github.py` aborts if the destination skill
+directory already exists. If
+`<project-root>/.agents/skills/manage-project-tasks/` already exists, do not
+treat that abort as installation failure. Use the existing-skill path below.
+
 If a same-name skill already exists:
 
-- update it in place if it is the same system or a previous compatible version;
+- inspect its `SKILL.md` frontmatter and purpose;
+- update the expected files in place if it is the same system or a previous
+  compatible version;
+- copy the expected files exactly from
+  `https://github.com/dezvin/codex-skills/tree/main/skills/manage-project-tasks`;
+- do not merge old and new reference content by hand;
+- if extra non-technical files are present, list them and ask before deleting
+  them;
 - stop and ask if it has a different purpose or unknown user extensions.
 
 Do not create `README.md`, `INSTALLATION_GUIDE.md`, `QUICK_REFERENCE.md`,
 `CHANGELOG.md`, or a copy of this installer inside the skill.
 
-## 5. Root AGENTS.md Contract
+## 5. Root AGENTS.md Merge Rule
+
+Update `AGENTS.md` by meaning, not by blind append.
+
+1. If a `Project Task Tracking` section already exists, replace or update that
+   section.
+2. If a nearby TODO/task policy exists under another heading, fold it into one
+   task tracking section.
+3. Preserve unrelated project instructions, style, and heading level.
+4. Remove obsolete task-system details from the root section only after the
+   project skill is installed and validated.
+5. Leave exactly one active task tracking policy.
+6. Do not leave installer URLs, installation history, full task templates,
+   full migration procedure, or copied skill content in `AGENTS.md`.
+
+## 6. Root AGENTS.md Contract
 
 Add or update exactly one task tracking section in root `AGENTS.md`.
 
@@ -175,7 +220,7 @@ copy of the skill, or a link to this installer as runtime instruction.
 If root `AGENTS.md` already contains task rules, update the existing task
 section by meaning. Do not add a second competing task policy.
 
-## 6. TODO.md
+## 7. TODO.md
 
 The canonical open task file is:
 
@@ -206,7 +251,7 @@ Closed tasks are archived in `archive/tasks/YYYY-MM.md`.
 Use the actual archive pattern chosen for the project if it differs from the
 default. Do not create demonstration projects or tasks.
 
-## 7. Migration Rules
+## 8. Migration Rules
 
 Closed tasks may be migrated only as a deliberate cleanup or upgrade step.
 
@@ -221,7 +266,7 @@ When migrating:
 
 Do not delete or rename independent legacy task files or archives.
 
-## 8. Validation
+## 9. Validation
 
 After the setup batch:
 
