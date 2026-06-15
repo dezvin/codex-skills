@@ -129,8 +129,9 @@ Codex:
 - treats handoff as transfer of working state, not a chronological summary;
 - saves project-related handoffs in the nearest project root, falling back to
   the OS temp directory only for projectless work;
-- uses stable names like `handoff-<topic>.md` and creates numbered versions
-  instead of overwriting existing files;
+- uses stable names like `handoff-<topic>.md`, creates numbered versions for
+  new handoff conflicts, and updates an explicitly provided existing handoff
+  path in place;
 - separates decisions, constraints, artifacts, completed work, remaining work,
   and the next concrete action;
 - optionally separates confirmed facts, assumptions, and items that must be

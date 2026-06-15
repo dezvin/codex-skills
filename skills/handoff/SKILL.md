@@ -20,7 +20,8 @@ The handoff is not a chronological conversation summary. Preserve information wh
 - When the work belongs to a project, search upward from the current working directory and save the file in the nearest ancestor that represents the project root. Infer it from available project metadata, manifests, configuration, source layout, or repository markers.
 - When the work is not project-based or no project root can be identified, use the operating system's temporary directory.
 - Use `handoff-<topic>.md`.
-- Never overwrite an existing file. On conflict, use the first available numbered name: `handoff-<topic>-2.md`, `handoff-<topic>-3.md`, and so on.
+- If the user provides an existing handoff path and asks to update, refresh, amend, or replace it, read that file first and update it in place. Do not create a numbered copy.
+- When creating a new handoff, never overwrite an existing file. On conflict, use the first available numbered name: `handoff-<topic>-2.md`, `handoff-<topic>-3.md`, and so on.
 
 ## Write the handoff
 
