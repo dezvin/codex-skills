@@ -1,0 +1,7 @@
+interface:
+  display_name: "Nearest Clarity"
+  short_description: "Короткие циклы для сложной работы"
+  default_prompt: "Use $nearest-clarity to find the nearest clear segment, expected signal, and next correct step."
+
+policy:
+  allow_implicit_invocation: true

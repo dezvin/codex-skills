@@ -7,6 +7,8 @@ Personal Agent Skills for Codex.
 | Skill | Description |
 | --- | --- |
 | [`handoff`](skills/handoff) | Create a compact continuation handoff and a ready-to-use prompt for a fresh Codex chat. |
+| [`manage-project-tasks`](skills/manage-project-tasks) | Maintain durable project task state in `TODO.md` and monthly task archives. |
+| [`nearest-clarity`](skills/nearest-clarity) | Work through uncertain, multi-iteration problems by choosing the nearest clear segment. |
 | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Build, adapt, repair, and structure portable image prompts without generating images. |
 | [`zoom-out`](skills/zoom-out) | Step back from a local request, map the wider system, verify decision-critical foundations, and return with a better execution frame. |
 
@@ -24,6 +26,16 @@ Examples:
 ```text
 Use $skill-installer to install the handoff skill from:
 https://github.com/dezvin/codex-skills/tree/main/skills/handoff
+```
+
+```text
+Use $skill-installer to install the manage-project-tasks skill from:
+https://github.com/dezvin/codex-skills/tree/main/skills/manage-project-tasks
+```
+
+```text
+Use $skill-installer to install the nearest-clarity skill from:
+https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity
 ```
 
 ```text
@@ -45,6 +57,53 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 ```
 
 Restart Codex after installation.
+
+## Project workflow installers
+
+Some skills are project-scoped systems rather than standalone global skills.
+They work best with a root `AGENTS.md` routing contract and project files that
+must be installed into the current project.
+
+- `manage-project-tasks` uses `TODO.md`, a task archive path, and root
+  `AGENTS.md` rules so Codex knows when durable task state must be preserved.
+- `nearest-clarity` can integrate with `TODO.md` for durable state and expects
+  the global `zoom-out` skill to be available.
+
+For a full project setup, ask Codex from the target project:
+
+```text
+Read and apply this installer to the current project:
+https://raw.githubusercontent.com/dezvin/codex-skills/main/installers/codex-todo-system.md
+
+Install only the necessary project files, preserve existing project conventions
+when the installer allows it, and show the final diff before committing.
+```
+
+```text
+Read and apply this installer to the current project:
+https://raw.githubusercontent.com/dezvin/codex-skills/main/installers/nearest-clarity-method.md
+
+Install only the necessary project files, preserve existing project conventions
+when the installer allows it, and show the final diff before committing.
+```
+
+Use skill-only installation for these two only when the target project already
+has the matching `AGENTS.md`, `TODO.md`, archive, and dependency conventions.
+For a project-local skill-only install:
+
+```powershell
+python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
+  --repo dezvin/codex-skills `
+  --path skills/manage-project-tasks `
+  --dest .agents\skills
+```
+
+```powershell
+python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
+  --repo dezvin/codex-skills `
+  --path skills/nearest-clarity `
+  --dest .agents\skills
+```
 
 ## `handoff` origin and differences
 
@@ -108,12 +167,25 @@ This version keeps that core move, but expands it into a broader Codex workflow:
 skills/
   handoff/
     SKILL.md
+  manage-project-tasks/
+    agents/
+    references/
+    SKILL.md
+  nearest-clarity/
+    agents/
+    references/
+    SKILL.md
   universal-visual-prompt-builder/
     agents/
     references/
     SKILL.md
   zoom-out/
     SKILL.md
+installers/
+  codex-todo-system.md
+  nearest-clarity-method.md
 ```
 
 Each skill is stored in its own directory so it can be installed independently.
+Project workflow installers are stored separately because they may update files
+outside the skill folder.

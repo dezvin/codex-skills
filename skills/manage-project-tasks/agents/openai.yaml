@@ -1,0 +1,7 @@
+interface:
+  display_name: "Manage Project Tasks"
+  short_description: "Ведение TODO и архива проектных задач"
+  default_prompt: "Use $manage-project-tasks to safely update the current project task state."
+
+policy:
+  allow_implicit_invocation: true
