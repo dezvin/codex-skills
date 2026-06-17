@@ -6,6 +6,7 @@ Personal Agent Skills for Codex.
 
 | Skill | Description |
 | --- | --- |
+| [`export-current-thread`](skills/export-current-thread) | Save the current Codex thread transcript as a local UTF-8 txt file. |
 | [`handoff`](skills/handoff) | Create a compact continuation handoff and a ready-to-use prompt for a fresh Codex chat. |
 | [`manage-project-tasks`](skills/manage-project-tasks) | Maintain durable project task state in `TODO.md` and monthly task archives. |
 | [`nearest-clarity`](skills/nearest-clarity) | Work through uncertain, multi-iteration problems by choosing the nearest clear segment. |
@@ -22,6 +23,11 @@ https://github.com/dezvin/codex-skills/tree/main/skills/<skill-name>
 ```
 
 Examples:
+
+```text
+Use $skill-installer to install the export-current-thread skill from:
+https://github.com/dezvin/codex-skills/tree/main/skills/export-current-thread
+```
 
 ```text
 Use $skill-installer to install the handoff skill from:
@@ -172,6 +178,10 @@ This version keeps that core move, but expands it into a broader Codex workflow:
 
 ```text
 skills/
+  export-current-thread/
+    agents/
+    scripts/
+    SKILL.md
   handoff/
     SKILL.md
   manage-project-tasks/

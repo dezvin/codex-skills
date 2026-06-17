@@ -1,0 +1,7 @@
+interface:
+  display_name: "Export current thread"
+  short_description: "Save current Codex thread as txt"
+  default_prompt: "Use $export-current-thread to save this Codex thread as a txt file."
+
+policy:
+  allow_implicit_invocation: false
