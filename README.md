@@ -1,87 +1,107 @@
 # Codex Skills
 
-Personal Agent Skills for Codex.
+Личная коллекция Agent Skills для Codex.
 
-## Available skills
+Это не демо-набор и не библиотека абстрактных команд. Здесь собраны рабочие
+процедуры, которые делают Codex более устойчивым: помогают сохранять состояние,
+передавать работу в новый чат, вовремя отступать на уровень выше, вести
+проектные задачи и собирать визуальные промпты без превращения каждого диалога
+в ручной процесс.
 
-| Skill | Description |
-| --- | --- |
-| [`export-current-thread`](skills/export-current-thread) | Save the current Codex thread transcript as a local UTF-8 txt file. |
-| [`handoff`](skills/handoff) | Create a compact continuation handoff and a ready-to-use prompt for a fresh Codex chat. |
-| [`manage-project-tasks`](skills/manage-project-tasks) | Maintain durable project task state in `TODO.md` and monthly task archives. |
-| [`nearest-clarity`](skills/nearest-clarity) | Work through uncertain, multi-iteration problems by choosing the nearest clear segment. |
-| [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Build, adapt, repair, and structure portable image prompts without generating images. |
-| [`zoom-out`](skills/zoom-out) | Step back from a local request, map the wider system, verify decision-critical foundations, and return with a better execution frame. |
+## С чего начать
 
-## Install a skill
+Если хочется поставить минимальный набор:
 
-Ask Codex:
+1. `zoom-out` - чтобы Codex не решал не ту задачу.
+2. `handoff` - чтобы переносить работу в новый чат без потери контекста.
+3. `export-current-thread` - чтобы сохранять текущую ветку в `.txt`, когда
+   нужно вынести историю наружу.
+
+Если нужен проектный слой памяти:
+
+1. Установить `manage-project-tasks` через project installer.
+2. Установить `nearest-clarity`, если в проекте часто есть неопределённость,
+   короткие итерации и меняющаяся рамка работы.
+
+## Навыки
+
+| Skill | Тип | Когда использовать |
+| --- | --- | --- |
+| [`zoom-out`](skills/zoom-out) | Глобальный | Когда надо отступить на уровень выше, проверить рамку, риски, факты и цель перед действием. |
+| [`handoff`](skills/handoff) | Глобальный | Когда нужно сохранить рабочее состояние и дать следующему Codex-чату готовый стартовый prompt. |
+| [`export-current-thread`](skills/export-current-thread) | Утилита | Когда нужно явно экспортировать текущую Codex-ветку в локальный `.txt` файл. |
+| [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Глобальный | Когда нужен переносимый визуальный prompt для image models, без генерации изображения. |
+| [`manage-project-tasks`](skills/manage-project-tasks) | Project workflow | Когда проекту нужен долговременный `TODO.md`, статусы задач и архив закрытой работы. |
+| [`nearest-clarity`](skills/nearest-clarity) | Project workflow | Когда работа идёт через ближайшую ясность: короткие итерации, сигналы, проверяемые участки и честную неопределённость. |
+
+## Типы
+
+**Глобальный skill** ставится один раз в Codex skills и используется в любых
+чатах.
+
+**Утилита** вызывается явно для конкретного действия. Например,
+`export-current-thread` не должен включаться сам.
+
+**Project workflow** ставится внутрь конкретного проекта и обычно требует
+изменения корневого `AGENTS.md`. Это уже не просто skill-папка, а маленький
+рабочий контракт для проекта.
+
+## Установка одного глобального skill
+
+Попросите Codex:
 
 ```text
 Use $skill-installer to install a skill from:
 https://github.com/dezvin/codex-skills/tree/main/skills/<skill-name>
 ```
 
-Examples:
+Например:
 
 ```text
-Use $skill-installer to install the export-current-thread skill from:
-https://github.com/dezvin/codex-skills/tree/main/skills/export-current-thread
-```
-
-```text
-Use $skill-installer to install the handoff skill from:
+Use $skill-installer to install a skill from:
 https://github.com/dezvin/codex-skills/tree/main/skills/handoff
 ```
 
-```text
-Use $skill-installer to install the manage-project-tasks skill from:
-https://github.com/dezvin/codex-skills/tree/main/skills/manage-project-tasks
-```
-
-```text
-Use $skill-installer to install the nearest-clarity skill from:
-https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity
-```
-
-```text
-Use $skill-installer to install the zoom-out skill from:
-https://github.com/dezvin/codex-skills/tree/main/skills/zoom-out
-```
-
-```text
-Use $skill-installer to install the universal-visual-prompt-builder skill from:
-https://github.com/dezvin/codex-skills/tree/main/skills/universal-visual-prompt-builder
-```
-
-Or run the installer script directly:
+Или из терминала PowerShell:
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
   --repo dezvin/codex-skills `
-  --path skills/<skill-name>
+  --path skills/handoff
 ```
 
-Restart Codex after installation.
+После установки перезапустите Codex, чтобы новый skill появился в списке
+доступных.
+
+## Пути для установки
+
+| Skill | GitHub path |
+| --- | --- |
+| `export-current-thread` | [`skills/export-current-thread`](skills/export-current-thread) |
+| `handoff` | [`skills/handoff`](skills/handoff) |
+| `zoom-out` | [`skills/zoom-out`](skills/zoom-out) |
+| `universal-visual-prompt-builder` | [`skills/universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) |
+| `manage-project-tasks` | [`skills/manage-project-tasks`](skills/manage-project-tasks) |
+| `nearest-clarity` | [`skills/nearest-clarity`](skills/nearest-clarity) |
 
 ## Project workflow installers
 
-Some skills are project-scoped systems rather than standalone global skills.
-They work best with a root `AGENTS.md` routing contract and project files that
-must be installed into the current project.
+`manage-project-tasks` и `nearest-clarity` лучше ставить не как обычные
+глобальные skills, а через project installer.
 
-These installers are bootstrap documents: they do not duplicate skill file
-contents. The canonical skill contents live under `skills/<skill-name>/`.
-If a project-local skill already exists, update it in place only after
-confirming it is the same compatible workflow; the installer helper itself
-aborts on existing destination directories.
+Project installer - это bootstrap-документ для Codex. Он не дублирует
+содержимое skill-файлов. Каноническое содержимое лежит в `skills/<skill-name>/`,
+а installer объясняет, как встроить workflow в конкретный проект:
 
-- `manage-project-tasks` uses `TODO.md`, a task archive path, and root
-  `AGENTS.md` rules so Codex knows when durable task state must be preserved.
-- `nearest-clarity` can integrate with `TODO.md` for durable state and expects
-  the global `zoom-out` skill to be available.
+- скопировать project skill в `.agents/skills/...`;
+- обновить корневой `AGENTS.md`;
+- сохранить существующие проектные правила;
+- не создать второй конфликтующий workflow;
+- показать финальный diff перед коммитом.
 
-For a full project setup, ask Codex from the target project:
+### Task system
+
+Из корня целевого проекта попросите Codex:
 
 ```text
 Read and apply this installer to the current project:
@@ -91,6 +111,17 @@ Install only the necessary project files, preserve existing project conventions
 when the installer allows it, and show the final diff before committing.
 ```
 
+Что появится в проекте:
+
+- короткий раздел `Project Task Tracking` в `AGENTS.md`;
+- `.agents/skills/manage-project-tasks/`;
+- `TODO.md`, если его ещё нет;
+- ленивый архив закрытых задач, например `archive/tasks/YYYY-MM.md`.
+
+### Nearest clarity
+
+Из корня целевого проекта попросите Codex:
+
 ```text
 Read and apply this installer to the current project:
 https://raw.githubusercontent.com/dezvin/codex-skills/main/installers/nearest-clarity-method.md
@@ -99,9 +130,16 @@ Install only the necessary project files, preserve existing project conventions
 when the installer allows it, and show the final diff before committing.
 ```
 
-Use skill-only installation for these two only when the target project already
-has the matching `AGENTS.md`, `TODO.md`, archive, and dependency conventions.
-For a project-local skill-only install:
+`nearest-clarity` ожидает, что глобальный `zoom-out` доступен. Во время
+итерационной работы `nearest-clarity` остаётся родительским процессом, а
+`zoom-out` используется только как зависимый пересмотр рамки, когда меняется
+основание работы.
+
+## Skill-only установка project workflow
+
+Используйте skill-only установку для `manage-project-tasks` и
+`nearest-clarity` только если проект уже подготовлен: есть правильный
+`AGENTS.md`, понятная task-система или согласованная политика workflow.
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
@@ -117,64 +155,93 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
   --dest .agents\skills
 ```
 
-## `handoff` origin and differences
+Важно: стандартный installer падает, если destination skill directory уже
+существует. Для обновления существующего project skill сначала проверьте, что
+это тот же совместимый workflow, и только потом обновляйте файлы на месте.
 
-The `handoff` skill was derived from Matt Pocock's original productivity
-[`handoff` skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md).
+## Коротко по каждому skill
 
-The original is a compact instruction-only skill: it asks the agent to summarize
-the current conversation into a handoff document, save it to the OS temp
-directory, include suggested skills, reference existing artifacts instead of
-duplicating them, redact secrets, and use the user's argument as the next-session
-focus.
+### `zoom-out`
 
-This version keeps the continuation idea, but makes it more operational for
-Codex:
+Заставляет Codex сменить масштаб перед действием: понять класс задачи, систему,
+факты, допущения, риски, зависимости, критерий успеха и только потом решать.
 
-- creates both a handoff file and a ready-to-use prompt for a fresh Codex chat;
-- treats handoff as transfer of working state, not a chronological summary;
-- saves project-related handoffs in the nearest project root, falling back to
-  the OS temp directory only for projectless work;
-- uses stable names like `handoff-<topic>.md`, creates numbered versions for
-  new handoff conflicts, and updates an explicitly provided existing handoff
-  path in place;
-- separates decisions, constraints, artifacts, completed work, remaining work,
-  and the next concrete action;
-- optionally separates confirmed facts, assumptions, and items that must be
-  verified when uncertainty matters;
-- suggests only skills that are actually available, and omits the section rather
-  than inventing names when the skill list cannot be inspected;
-- adapts to non-development work by preserving relevant audience, outcome,
-  format, tone, channel, stakeholder constraints, accepted or rejected
-  directions, and usefulness criteria;
-- removes `argument-hint` from frontmatter to match Codex's `name` +
-  `description` skill metadata convention.
+Особенно полезен для стратегии, маркетинга, research, agent instructions,
+сложных документов, незнакомого кода и задач, где легко сделать красивую, но
+не ту работу.
 
-## `zoom-out` origin and differences
+### `handoff`
 
-The `zoom-out` skill was inspired by Matt Pocock's original engineering-focused
-[`zoom-out` skill](https://github.com/mattpocock/skills/blob/main/skills/engineering/zoom-out/SKILL.md).
+Создаёт handoff-файл и готовый prompt для нового Codex-чата. Это не пересказ
+разговора, а перенос рабочего состояния: цель, решения, ограничения, источники
+правды, сделанное, оставшееся и следующий шаг.
 
-The original is intentionally tiny: it asks the agent to go up one abstraction
-level in unfamiliar code and map relevant modules and callers using the
-project's domain vocabulary.
+Если пользователь дал существующий handoff-файл и попросил обновить его, skill
+обновляет этот файл in place. Если создаётся новый handoff и имя занято,
+создаётся numbered copy.
 
-This version keeps that core move, but expands it into a broader Codex workflow:
+### `export-current-thread`
 
-- applies to both code and non-code work, including strategy, research,
-  marketing, content, documents, agent instructions, and workflows;
-- separates verified facts, reported claims, inferences, assumptions, and
-  unknowns before acting;
-- asks the agent to verify decision-critical foundations instead of accepting
-  the user's framing as fact;
-- introduces an Execution Frame so the result stays aligned with purpose,
-  constraints, evidence, risks, success criteria, and downstream use;
-- includes proportionate output modes and task-type frames for marketing,
-  business, strategy, research, document/content, and code tasks;
-- adds explicit checks against overconfidence, unsupported generalization,
-  stale context, scope drift, and solving the wrong problem.
+Явная утилита для экспорта текущей Codex-ветки в `.txt`. Полезно, когда нужно
+сохранить разговор как артефакт, отдать его другому инструменту или вынести из
+Codex историю работы.
 
-## Repository structure
+Skill не вставляет transcript в чат, а сохраняет файл и возвращает ссылку на
+него.
+
+### `universal-visual-prompt-builder`
+
+Помогает делать переносимые image prompts: от идеи, референса или слабого
+промпта к структурированному описанию сцены, стиля, камеры, формата, текста,
+вариантов и исправлений.
+
+Он не генерирует картинки. Его задача - сделать prompt, который можно нести в
+другие image models.
+
+### `manage-project-tasks`
+
+Проектная система долговременных задач. Хранит открытые задачи в `TODO.md`,
+закрытые задачи - в месячном архиве. Разделяет короткие session tasks и то, что
+должно пережить текущую сессию.
+
+Главная идея: не превращать чат в память проекта и не превращать `TODO.md` в
+дневник мыслей.
+
+### `nearest-clarity`
+
+Workflow для сложной работы, где нельзя честно расписать весь маршрут заранее.
+Он держит целевой контур, выбирает ближайший понятный участок, заранее называет
+ожидаемый сигнал, после итерации считывает фактический сигнал и обновляет
+следующий шаг.
+
+Подходит для исследований, продукта, контента, стратегии, пересборки workflow и
+других задач, где ясность появляется по ходу движения.
+
+## Происхождение и адаптации
+
+`handoff` основан на минимальном productivity skill Мэтта Покока:
+[`handoff`](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md).
+
+Эта версия сильнее заточена под Codex:
+
+- создаёт не только handoff-файл, но и готовую команду для нового чата;
+- сохраняет project handoff в ближайший project root;
+- различает факты, допущения и то, что надо проверить;
+- поддерживает non-dev задачи;
+- не использует `argument-hint` во frontmatter.
+
+`zoom-out` вдохновлён инженерным skill Мэтта Покока:
+[`zoom-out`](https://github.com/mattpocock/skills/blob/main/skills/engineering/zoom-out/SKILL.md).
+
+Эта версия расширяет идею за пределы кода:
+
+- работает для стратегии, research, маркетинга, контента и agent workflows;
+- отделяет verified facts, reported claims, assumptions и unknowns;
+- проверяет decision-critical foundations;
+- вводит Execution Frame;
+- явно борется с overconfidence и решением не той задачи.
+
+## Структура репозитория
 
 ```text
 skills/
@@ -203,6 +270,24 @@ installers/
   nearest-clarity-method.md
 ```
 
-Each skill is stored in its own directory so it can be installed independently.
-Project workflow installers are stored separately because they may update files
-outside the skill folder.
+Каждый skill лежит в отдельной папке, чтобы его можно было устанавливать
+независимо. Project workflow installers лежат отдельно, потому что они могут
+менять файлы за пределами skill-папки.
+
+## Проверка
+
+Для быстрой проверки skill:
+
+```powershell
+python "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
+  ".\skills\<skill-name>"
+```
+
+Для установки из этого репозитория во временную папку:
+
+```powershell
+python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
+  --repo dezvin/codex-skills `
+  --path skills/<skill-name> `
+  --dest "$env:TEMP\codex-skill-test"
+```
