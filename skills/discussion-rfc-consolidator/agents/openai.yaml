@@ -1,0 +1,4 @@
+interface:
+  display_name: "Discussion RFC Consolidator"
+  short_description: "Turn discussion exports into decision RFCs."
+  default_prompt: "Use $discussion-rfc-consolidator to consolidate this exported discussion into a decision RFC."

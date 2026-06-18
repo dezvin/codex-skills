@@ -4,9 +4,9 @@
 
 Это не демо-набор и не библиотека абстрактных команд. Здесь собраны рабочие
 процедуры, которые делают Codex более устойчивым: помогают сохранять состояние,
-передавать работу в новый чат, вовремя отступать на уровень выше, вести
-проектные задачи и собирать визуальные промпты без превращения каждого диалога
-в ручной процесс.
+передавать работу в новый чат, консолидировать длинные обсуждения перед
+решениями, вовремя отступать на уровень выше, вести проектные задачи и собирать
+визуальные промпты без превращения каждого диалога в ручной процесс.
 
 ## С чего начать
 
@@ -23,12 +23,19 @@
 2. Установить `nearest-clarity`, если в проекте часто есть неопределённость,
    короткие итерации и меняющаяся рамка работы.
 
+Если длинное обсуждение уже распухло перед реализацией:
+
+1. `export-current-thread` - получить `.txt` текущей Codex-ветки.
+2. `discussion-rfc-consolidator` - собрать RFC: решения, отказы, развилки,
+   риски и вопросы перед финальным документом.
+
 ## Навыки
 
 | Skill | Тип | Когда использовать |
 | --- | --- | --- |
 | [`zoom-out`](skills/zoom-out) | Глобальный | Когда надо отступить на уровень выше, проверить рамку, риски, факты и цель перед действием. |
 | [`handoff`](skills/handoff) | Глобальный | Когда нужно сохранить рабочее состояние и дать следующему Codex-чату готовый стартовый prompt. |
+| [`discussion-rfc-consolidator`](skills/discussion-rfc-consolidator) | Глобальный | Когда нужно превратить экспорт длинного обсуждения в RFC-консолидацию решений перед design doc или реализацией. |
 | [`export-current-thread`](skills/export-current-thread) | Утилита | Когда нужно явно экспортировать текущую Codex-ветку в локальный `.txt` файл. |
 | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Глобальный | Когда нужен переносимый визуальный prompt для image models, без генерации изображения. |
 | [`manage-project-tasks`](skills/manage-project-tasks) | Project workflow | Когда проекту нужен долговременный `TODO.md`, статусы задач и архив закрытой работы. |
@@ -77,6 +84,7 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 
 | Skill | GitHub path |
 | --- | --- |
+| `discussion-rfc-consolidator` | [`skills/discussion-rfc-consolidator`](skills/discussion-rfc-consolidator) |
 | `export-current-thread` | [`skills/export-current-thread`](skills/export-current-thread) |
 | `handoff` | [`skills/handoff`](skills/handoff) |
 | `zoom-out` | [`skills/zoom-out`](skills/zoom-out) |
@@ -180,6 +188,19 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 обновляет этот файл in place. Если создаётся новый handoff и имя занято,
 создаётся numbered copy.
 
+### `discussion-rfc-consolidator`
+
+Превращает экспорт длинного обсуждения в RFC-консолидацию перед финальным
+design doc, architecture brief, implementation plan или созданием нового skill.
+
+Главный результат - не пересказ чата, а Decision Ledger и полный RFC: что
+принято, что отвергнуто, что заменено, что только предложено, где развилки,
+риски и вопросы перед реализацией.
+
+Если экспорт уже есть, skill использует его. Если нужен текущий Codex thread,
+он может использовать `export-current-thread`; если его нет, внутри есть
+fallback-скрипт экспорта.
+
 ### `export-current-thread`
 
 Явная утилита для экспорта текущей Codex-ветки в `.txt`. Полезно, когда нужно
@@ -245,6 +266,11 @@ Workflow для сложной работы, где нельзя честно р
 
 ```text
 skills/
+  discussion-rfc-consolidator/
+    agents/
+    references/
+    scripts/
+    SKILL.md
   export-current-thread/
     agents/
     scripts/
