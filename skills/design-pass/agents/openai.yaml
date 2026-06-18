@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Pass"
+  short_description: "Turn preflight into ready design."
+  default_prompt: "Use $design-pass to turn this preflight package into a design pass before implementation."

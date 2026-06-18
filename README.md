@@ -5,8 +5,9 @@
 Это не демо-набор и не библиотека абстрактных команд. Здесь собраны рабочие
 процедуры, которые делают Codex более устойчивым: помогают сохранять состояние,
 передавать работу в новый чат, консолидировать длинные обсуждения перед
-решениями, вовремя отступать на уровень выше, вести проектные задачи и собирать
-визуальные промпты без превращения каждого диалога в ручной процесс.
+решениями, проектировать реализацию перед действием, вовремя отступать на
+уровень выше, вести проектные задачи и собирать визуальные промпты без
+превращения каждого диалога в ручной процесс.
 
 ## С чего начать
 
@@ -28,6 +29,8 @@
 1. `export-current-thread` - получить `.txt` текущей Codex-ветки.
 2. `preflight` - собрать итог перед реализацией: решения, отказы, развилки,
    риски и вопросы перед финальным документом.
+3. `design-pass` - превратить preflight и ответы на открытые вопросы в проект
+   реализации, карту влияния и команду для следующего агента.
 
 ## Навыки
 
@@ -36,6 +39,7 @@
 | [`zoom-out`](skills/zoom-out) | Глобальный | Когда надо отступить на уровень выше, проверить рамку, риски, факты и цель перед действием. |
 | [`handoff`](skills/handoff) | Глобальный | Когда нужно сохранить рабочее состояние и дать следующему Codex-чату готовый стартовый prompt. |
 | [`preflight`](skills/preflight) | Глобальный | Когда нужно превратить экспорт длинного обсуждения в итоговую сверку решений перед design doc или реализацией. |
+| [`design-pass`](skills/design-pass) | Глобальный | Когда нужно превратить preflight в проект реализации, карту влияния, проверки и handoff-команду для следующего агента. |
 | [`export-current-thread`](skills/export-current-thread) | Утилита | Когда нужно явно экспортировать текущую Codex-ветку в локальный `.txt` файл. |
 | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Глобальный | Когда нужен переносимый визуальный prompt для image models, без генерации изображения. |
 | [`manage-project-tasks`](skills/manage-project-tasks) | Project workflow | Когда проекту нужен долговременный `TODO.md`, статусы задач и архив закрытой работы. |
@@ -85,12 +89,40 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 | Skill | GitHub path |
 | --- | --- |
 | `preflight` | [`skills/preflight`](skills/preflight) |
+| `design-pass` | [`skills/design-pass`](skills/design-pass) |
 | `export-current-thread` | [`skills/export-current-thread`](skills/export-current-thread) |
 | `handoff` | [`skills/handoff`](skills/handoff) |
 | `zoom-out` | [`skills/zoom-out`](skills/zoom-out) |
 | `universal-visual-prompt-builder` | [`skills/universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) |
 | `manage-project-tasks` | [`skills/manage-project-tasks`](skills/manage-project-tasks) |
 | `nearest-clarity` | [`skills/nearest-clarity`](skills/nearest-clarity) |
+
+## Preflight + Design Pass
+
+`preflight` и `design-pass` образуют отдельный workflow перед реализацией.
+
+`preflight` фиксирует память решений: что принято, что отвергнуто, что
+заменено, что только предложено, где остались вопросы, риски и противоречия.
+Он не проектирует реализацию и не редактирует файлы.
+
+`design-pass` берёт preflight, ответы пользователя после preflight и целевую
+задачу реализации. Его результат - не код и не прямое внедрение, а
+handoff-ready design: требования, ограничения, выбранные views, `Design Diff`,
+карта трассировки и влияния, проверки, readiness status и команда для
+следующего Codex-чата.
+
+Рекомендуемый путь:
+
+1. Если нужен текущий Codex thread, сначала использовать `export-current-thread`.
+2. Запустить `preflight` на экспорт или на готовый transcript.
+3. Ответить на открытые вопросы из preflight, если они есть.
+4. Запустить `design-pass` на preflight + ответы.
+5. В новом чате дать агенту design-pass и команду из раздела
+   `Ready-To-Use Implementation Command`.
+
+Зачем два skill-а, а не один: `preflight` защищает от потери решений и
+придуманных выводов, а `design-pass` защищает от реализации без проекта,
+трассировки влияния и проверки готовности.
 
 ## Project workflow installers
 
@@ -201,6 +233,19 @@ design doc, architecture brief, implementation plan или созданием н
 он может использовать `export-current-thread`; если его нет, внутри есть
 fallback-скрипт экспорта.
 
+### `design-pass`
+
+Превращает preflight brief, Decision Ledger и ответы пользователя после
+preflight в проект реализации перед отдельным запуском агента.
+
+Главный результат - handoff-ready design: что должно измениться, какие
+требования и ограничения следуют из preflight, какие части системы или процесса
+затрагиваются, как это проверить и можно ли уже отдавать задачу в реализацию.
+
+Skill специально не реализует сам. Он готовит следующего агента: даёт
+`Design Diff`, `Traceability And Impact Map`, readiness status и готовую
+команду для нового Codex-чата.
+
 ### `export-current-thread`
 
 Явная утилита для экспорта текущей Codex-ветки в `.txt`. Полезно, когда нужно
@@ -270,6 +315,10 @@ skills/
     agents/
     references/
     scripts/
+    SKILL.md
+  design-pass/
+    agents/
+    references/
     SKILL.md
   export-current-thread/
     agents/
