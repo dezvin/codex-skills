@@ -1,0 +1,4 @@
+interface:
+  display_name: "Preflight"
+  short_description: "Turn discussion exports into preflight briefs."
+  default_prompt: "Use $preflight to consolidate this exported discussion before implementation."

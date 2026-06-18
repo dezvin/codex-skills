@@ -26,7 +26,7 @@
 Если длинное обсуждение уже распухло перед реализацией:
 
 1. `export-current-thread` - получить `.txt` текущей Codex-ветки.
-2. `discussion-rfc-consolidator` - собрать RFC: решения, отказы, развилки,
+2. `preflight` - собрать итог перед реализацией: решения, отказы, развилки,
    риски и вопросы перед финальным документом.
 
 ## Навыки
@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | [`zoom-out`](skills/zoom-out) | Глобальный | Когда надо отступить на уровень выше, проверить рамку, риски, факты и цель перед действием. |
 | [`handoff`](skills/handoff) | Глобальный | Когда нужно сохранить рабочее состояние и дать следующему Codex-чату готовый стартовый prompt. |
-| [`discussion-rfc-consolidator`](skills/discussion-rfc-consolidator) | Глобальный | Когда нужно превратить экспорт длинного обсуждения в RFC-консолидацию решений перед design doc или реализацией. |
+| [`preflight`](skills/preflight) | Глобальный | Когда нужно превратить экспорт длинного обсуждения в итоговую сверку решений перед design doc или реализацией. |
 | [`export-current-thread`](skills/export-current-thread) | Утилита | Когда нужно явно экспортировать текущую Codex-ветку в локальный `.txt` файл. |
 | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Глобальный | Когда нужен переносимый визуальный prompt для image models, без генерации изображения. |
 | [`manage-project-tasks`](skills/manage-project-tasks) | Project workflow | Когда проекту нужен долговременный `TODO.md`, статусы задач и архив закрытой работы. |
@@ -84,7 +84,7 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 
 | Skill | GitHub path |
 | --- | --- |
-| `discussion-rfc-consolidator` | [`skills/discussion-rfc-consolidator`](skills/discussion-rfc-consolidator) |
+| `preflight` | [`skills/preflight`](skills/preflight) |
 | `export-current-thread` | [`skills/export-current-thread`](skills/export-current-thread) |
 | `handoff` | [`skills/handoff`](skills/handoff) |
 | `zoom-out` | [`skills/zoom-out`](skills/zoom-out) |
@@ -188,12 +188,12 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 обновляет этот файл in place. Если создаётся новый handoff и имя занято,
 создаётся numbered copy.
 
-### `discussion-rfc-consolidator`
+### `preflight`
 
-Превращает экспорт длинного обсуждения в RFC-консолидацию перед финальным
+Превращает экспорт длинного обсуждения в preflight brief перед финальным
 design doc, architecture brief, implementation plan или созданием нового skill.
 
-Главный результат - не пересказ чата, а Decision Ledger и полный RFC: что
+Главный результат - не пересказ чата, а Decision Ledger и полный preflight: что
 принято, что отвергнуто, что заменено, что только предложено, где развилки,
 риски и вопросы перед реализацией.
 
@@ -266,7 +266,7 @@ Workflow для сложной работы, где нельзя честно р
 
 ```text
 skills/
-  discussion-rfc-consolidator/
+  preflight/
     agents/
     references/
     scripts/
