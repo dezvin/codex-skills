@@ -1,0 +1,6 @@
+interface:
+  display_name: "Document Consolidator"
+  short_description: "Safely compress and merge documents"
+  default_prompt: "Use $document-consolidator to map, compress, or consolidate selected Markdown documents safely."
+policy:
+  allow_implicit_invocation: false
