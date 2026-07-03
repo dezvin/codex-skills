@@ -337,6 +337,9 @@ Workflow для сложной работы, где нельзя честно р
 Эта версия расширяет идею за пределы кода:
 
 - работает для стратегии, research, маркетинга, контента и agent workflows;
+- считает `zoom out` полной командой, без выбора подрежима пользователем;
+- умеет выходить из зацикливания и менять рамку, если локальный ответ снова
+  не попадает в задачу;
 - отделяет verified facts, reported claims, assumptions и unknowns;
 - проверяет decision-critical foundations;
 - вводит Execution Frame;
@@ -401,6 +404,7 @@ skills/
     references/
     SKILL.md
   zoom-out/
+    agents/
     SKILL.md
 installers/
   codex-todo-system.md

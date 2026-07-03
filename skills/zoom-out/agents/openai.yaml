@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zoom Out"
+  short_description: "Reframe stuck or strategic tasks"
+  default_prompt: "Use $zoom-out to step back, reframe the task, and choose the next useful move."
