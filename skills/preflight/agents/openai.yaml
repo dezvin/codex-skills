@@ -1,4 +1,0 @@
-interface:
-  display_name: "Preflight"
-  short_description: "Consolidate decisions before action."
-  default_prompt: "Use $preflight to consolidate decisions before implementation; for the current chat, specify with export or without export."
