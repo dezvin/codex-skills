@@ -1,0 +1,7 @@
+interface:
+  display_name: "JTBD-анализ аудитории"
+  short_description: "JTBD-анализ, сигналы и уточнение аудитории"
+  default_prompt: "Используй $analyze-audience-jtbd, чтобы разобрать мою аудиторию, клиентские сигналы или уточнить существующий JTBD."
+
+policy:
+  allow_implicit_invocation: true

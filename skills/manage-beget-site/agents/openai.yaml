@@ -1,0 +1,7 @@
+interface:
+  display_name: "Работа с сайтами на Beget"
+  short_description: "Безопасная публикация и обслуживание сайтов"
+  default_prompt: "Используй $manage-beget-site, чтобы безопасно проверить и выполнить работу с этим сайтом на Beget."
+
+policy:
+  allow_implicit_invocation: true
