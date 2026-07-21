@@ -4,6 +4,16 @@ Use these exact structures when creating, repairing, closing, or cancelling
 project tasks. Placeholder text is structural only; never copy it into real
 task data.
 
+## Contents
+
+- Open task
+- Future task
+- Blocked task
+- Archive file
+- Cancelled archive record
+- Field rules
+- Status rules
+
 ## Open Task
 
 ```md
@@ -23,7 +33,7 @@ task data.
 
 ##### <task-name>
 
-Status: pending
+Status: in_progress
 Created: YYYY-MM-DD
 Updated: YYYY-MM-DD
 
@@ -33,19 +43,16 @@ Updated: YYYY-MM-DD
 
 ###### Current Action
 
-- <required only while Status is in_progress>
+- <one concrete action being performed now>
 
 ###### Items
 
+- [~] in_progress: <bounded current work item>
 - [ ] pending: <remaining item>
-- [~] in_progress: <current item>
-- [!] blocked: <blocked item> — reason: <short reason>
-- [x] done: <recently completed item, only until progress is compacted>
-- [-] cancelled: <cancelled item> — reason: <short reason>
 
 ###### Progress
 
-- <optional compact summary of completed work, maximum 1-3 bullets>
+- <optional compact completed result, maximum 1-3 bullets>
 
 ###### Done When
 
@@ -53,16 +60,21 @@ Updated: YYYY-MM-DD
 
 ###### Proof
 
-- <minimal evidence available while the task remains open>
+- <include this section only when real evidence is already available>
 
 ###### Next
 
-- <next action>
+- <action after Current Action or safe resumption point>
 ```
 
 For a full task in `Active`, required fields are `Status`, `Created`, `Updated`,
-`Goal`, `Items`, `Done When`, `Proof`, and `Next`. `Current Action` is required
-only while the task is `in_progress`. `Progress` is optional.
+`Goal`, `Items`, `Done When`, and `Next`. `Current Action` is required only
+while the task is `in_progress`. `Progress` and `Proof` are optional.
+
+When `Status: in_progress`, use exactly one `[~] in_progress` item. It names
+the bounded part being advanced, while `Current Action` names the concrete
+action happening now. `Next` must not repeat `Current Action`; it names the
+following action or the safe resumption point after interruption.
 
 Existing project-specific routing may extend this structure. Preserve useful
 extensions during routine updates.
@@ -84,11 +96,45 @@ Updated: YYYY-MM-DD
 
 ###### Next
 
-- <first useful action>
+- <first useful action when work begins>
 ```
 
 Expand the task to the full open-task structure when work begins or when the
-extra fields become necessary.
+extra fields become necessary. A pending task does not need `Current Action`,
+a `[~]` item, or `Proof`.
+
+## Blocked Task
+
+Use the full open-task structure with:
+
+```md
+Status: blocked
+
+###### Items
+
+- [!] blocked: <blocked item> — reason: <specific reason>
+- [ ] pending: <remaining item>
+
+###### Next
+
+- <first safe action after the named unblock event or input>
+```
+
+Preserve meaningful completed work in `Progress`. Omit `Current Action` when
+no action is actually being performed. Name the event, input, file, decision,
+access grant, or external result that will unblock the task.
+
+## Item Markers
+
+Use only these item forms:
+
+```md
+- [ ] pending: <remaining item>
+- [~] in_progress: <bounded current item>
+- [!] blocked: <blocked item> — reason: <short reason>
+- [x] done: <recently completed item, only until progress is compacted>
+- [-] cancelled: <cancelled item> — reason: <short reason>
+```
 
 ## Archive File
 
@@ -111,7 +157,7 @@ Closed: YYYY-MM-DD
 
 #### Proof
 
-- <minimal evidence>
+- <real evidence that the work was performed>
 
 #### Files / Artifacts
 
@@ -122,8 +168,10 @@ Closed: YYYY-MM-DD
 - <new TODO task, or "None">
 ```
 
-Create the monthly archive lazily on the first real closure for that month.
-When appending to an existing file, reuse its existing date-group structure.
+Create `archive/tasks/YYYY-MM.md` lazily on the first real closure for that
+month. When appending to an existing file, reuse its existing date-group
+structure. `Proof` is required for `done`; do not archive plans, promises, or
+task existence as completed work.
 
 ## Cancelled Archive Record
 
@@ -135,22 +183,26 @@ Use the archive format with `Status: cancelled` and replace `Result` with:
 - <why the task was cancelled>
 ```
 
-Proof is optional for cancellation unless it materially explains the final
-state.
+The cancellation reason is required. `Proof` is optional unless it materially
+explains the final state.
 
 ## Field Rules
 
 - `Goal`: the state that should become true.
-- `Current Action`: one concrete action being performed now.
-- `Items`: current and remaining work, not a historical checklist.
+- `Items`: current and remaining bounded work, not a historical checklist.
+- `[~] in_progress`: the one bounded work item currently being advanced.
+- `Current Action`: one concrete action being performed now inside that item.
+- `Next`: the action after `Current Action` or the safe resumption point.
 - `Progress`: at most one to three compact completed results.
-- `Done When`: acceptance condition.
-- `Proof`: evidence already available while the task is open.
-- `Next`: the next useful action.
+- `Done When`: the acceptance condition.
+- `Proof`: real evidence already available; omit it from an open task until
+  evidence exists.
 - `Constraints`, `Risks`, `Open Questions`, and `Decisions`: add only when
   future continuation genuinely needs them.
 
-Use only these statuses:
+## Status Rules
+
+Use only these project task statuses:
 
 - `pending`
 - `in_progress`
@@ -158,5 +210,7 @@ Use only these statuses:
 - `done`
 - `cancelled`
 
-Knowledge labels such as fact, observation, hypothesis, decision, risk, noise,
-or verified result are not task statuses.
+These statuses belong only to the project task ledger. Do not use them to
+change Codex goal, plan, session, or execution states. Knowledge labels such
+as fact, observation, hypothesis, decision, risk, noise, or verified result
+are not task statuses.

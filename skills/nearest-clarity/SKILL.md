@@ -1,189 +1,160 @@
 ---
 name: nearest-clarity
 description: >-
-  Use when continued work must advance through bounded iterations because the
-  full route cannot yet be honestly planned: the user does not know what to do
-  next among several viable directions, important inputs will emerge during
-  execution, the current plan may be stale, or the nearest testable segment
-  must be chosen without pretending the whole path is known. Do not use merely
-  because a task is complex, strategic, risky, or multi-step, for ordinary
-  prioritization by clear criteria, or when the route and done condition are
-  already clear. Use standalone `zoom-out` for a one-time reframing,
-  recommendation, or plan that can be completed in one pass. During iterative
-  work, keep `nearest-clarity` as the parent and use `zoom-out` only through
-  its internal transition.
+  Use when continued work must advance through bounded iterations because
+  decision-relevant information will emerge only during execution and the full
+  route cannot yet be planned honestly. Trigger when several viable directions
+  remain, the next segment depends on findings from current work, important
+  constraints or inputs will appear during execution, or new evidence may
+  invalidate the current basis. Keep a stable target contour, mark later stages
+  as provisional, choose the nearest segment whose purpose and completion result
+  can be defined now, and update only the affected layer after new evidence. Do
+  not use merely because work is complex, strategic, risky, long-running, or
+  multi-step; for ordinary prioritization with clear criteria; for a one-pass
+  recommendation or reframing; or when the route and done condition are already
+  clear.
 ---
 
 # Nearest Clarity
 
-Work through uncertainty without pretending that the whole route is already known.
+Advance through genuine uncertainty without presenting the whole route as known.
 
-## Internal Zoom Out
+## Establish The Navigation Frame
 
-Keep `nearest-clarity` as the owner of the iterative workflow.
+Always establish these layers before selecting the current action:
 
-Use standalone `zoom-out` when the requested result is a one-time overview,
-recommendation, or plan and no continued iterative workflow is needed.
-
-At initial activation, invoke the global `zoom-out` skill as a dependent
-operation only when the user explicitly asks to reframe the problem or the
-current basis is confirmed stale. A request for a next step alone does not
-require `zoom-out`.
-
-When new knowledge changes the goal, constraints, dependencies, risks, success
-criteria, or problem framing:
-
-1. Invoke the global `zoom-out` skill as a dependent operation.
-2. Apply its result to the target contour, decision map, and nearest segment.
-3. Continue the `nearest-clarity` workflow from the updated basis.
-
-Do not replace the parent workflow with standalone `zoom-out`.
-
-If `zoom-out` is unavailable, do not claim that a full Zoom out was completed.
-Stop before continuing on a stale basis and report the missing dependency.
-
-## Choose Depth
-
-- Use light mode for moderate uncertainty: target, constraint, nearest action, expected result.
-- Use working mode for ordinary complex work: target contour, decision map, nearest segment, iteration, signal, next step.
-- Use deep mode for strategic, expensive, high-risk, or long-running work. Read `references/method.md` before proceeding.
-
-Do not turn a simple task into a methodology ritual.
-
-## Establish The Work
-
-1. State the target contour: why the work matters, what should become true, and what must not be lost.
-2. Identify current sources, inputs, constraints, and approval boundaries.
-3. Sketch a preliminary decision map: likely stages, forks, dependencies, risks, checks, and decisions that are too early to make.
-4. Mark distant stages as provisional. Do not present them as a committed route.
-5. Select the nearest clear segment that can be planned honestly.
-6. Define the result that should exist when the nearest segment is complete.
+1. **Target contour**: why the work matters, what should become true, and what must not be lost.
+2. **Nearest segment**: the bounded part of the route that can be planned honestly now.
+3. **Segment completion result**: the result that closes the nearest segment.
+4. **Current action**: the first concrete move inside the nearest segment.
+5. **Provisional next segments or forks**: likely later work, dependencies, checks, or decisions that are still too early to commit.
+6. **Far horizon**: the distant outcome or direction, without invented detail.
+7. **Route-changing knowledge**: what new evidence could change the segment, order, constraints, or basis.
 
 Use this precision gradient:
 
 ```text
-current iteration -> concrete
-nearest segment -> working plan
-later stages -> preliminary decision map
+current action -> concrete
+nearest segment -> bounded working plan
+next segments -> provisional route
 far horizon -> target contour
 ```
 
-## Run An Iteration
+Do not collapse the nearest segment into a renamed next action. A nearest segment has a purpose, a bounded body of work, a completion result, and a relationship to the provisional route. The current action is only its first move.
 
-Before acting:
+## Define The Nearest Segment
 
-1. Name the focus.
-2. Name the evidence or input being used.
-3. Name the expected signal: what should become clearer after the action.
-4. Confirm that the action is inside current permissions and approval boundaries.
+For the nearest segment, establish:
 
-After acting:
+- why this segment is the right one to open now;
+- what work belongs inside it;
+- what must remain outside it for now;
+- what result closes it;
+- what should become clearer if the segment is exploratory;
+- which provisional segment, fork, or decision it may open next.
 
-1. State what was done.
-2. Identify the actual signal.
-3. Separate fact, observation, hypothesis, decision, risk, noise, and verified result.
-4. State what remains unknown.
-5. Choose the next transition.
-6. Record only durable state when persistence is needed.
+Mark later stages honestly as provisional. Do not turn a plausible sequence into a committed route.
 
-Keep user-facing updates concise. Do not expose hidden reasoning or create a long methodology report unless the user requests one.
+## Choose The Iteration Type
 
-## Choose The Transition
-
-- If the signal does not change a decision, constraint, risk, order, or success criterion, treat it as noise or a bounded observation and continue.
-- If the signal changes only the order or contents of current work, update the nearest segment.
-- If the signal changes the goal, constraints, dependencies, risks, success criteria, or problem framing, use the global `zoom-out` skill before continuing.
-- If the basis did not change, continue the nearest segment without a ritual review or another `zoom-out`.
-- After the dependent `zoom-out`, update the affected working elements and continue under `nearest-clarity`.
-- If the nearest segment produced its intended result, close it and select the next segment.
-- If several iterations produce no useful signal, narrow the task or use `zoom-out`.
-
-A Zoom out is complete only when it changes or confirms a concrete element of the work and makes the next step clearer.
-
-## Handle Hypotheses
-
-Treat a hypothesis as a testable assumption, not a decision or fact.
-
-Use:
+Use an execution iteration when the route is already clear:
 
 ```text
-We assume...
-Because...
-This matters because...
-We can test it through...
-If true, next...
-If false, change...
+action -> output -> validation
 ```
 
-Do not turn one successful case into a general rule. Use:
+Use an exploratory iteration when the action is meant to reduce uncertainty:
 
 ```text
-test iteration -> observation -> hypothesis -> verification -> rule
+action -> output -> new knowledge -> decision change
 ```
 
-## Respect Risk And Consent
+For an execution iteration, do not invent an expected signal. Define the output and validation instead.
 
-Use the project's existing Gates and checkpoints.
+For an exploratory iteration, distinguish:
 
-Before risky or consequential actions that change documents, plans, money, public communication, project direction, obligations, or irreversible state:
+- the output created, inspected, or changed;
+- the knowledge expected from that output;
+- the decision that the knowledge could change.
 
-1. Show the proposed action.
-2. Explain the relevant consequence or risk.
-3. Ask for explicit user confirmation.
-4. Wait for a new user reply before executing.
+## Read The Result
 
-Do not add an extra checkpoint for a small reversible action already directly requested by the user.
+After an iteration, separate:
 
-Use a test iteration only when analysis is insufficient, a small real-world probe is cheaper than a large wrong plan, and the user explicitly approves it.
+- **output**: what was created, checked, or changed;
+- **knowledge**: what the iteration actually revealed;
+- **knowledge status**: fact, observation, hypothesis, risk, unknown, or verified result;
+- **decision**: what changes in the work because of that knowledge.
 
-## Integrate With TODO
+Do not treat a decision as evidence. Do not turn one successful case into a rule. Use:
 
-The method controls movement through uncertainty. The project task system stores only durable state.
+```text
+test -> observation -> hypothesis -> verification -> rule
+```
 
-Using `TODO.md` as an information source does not make `manage-project-tasks`
-the parent workflow. When the task is to choose a direction under genuine
-uncertainty, keep `nearest-clarity` as the parent. Invoke
-`manage-project-tasks` only if the resulting durable task state must be
-persisted or reconstructed.
+Keep internal classification out of the user-facing answer unless it helps the user judge the result or choose a direction.
 
-When work must survive the current session:
+## Update The Route
 
-- use `Goal` for the target contour;
-- use `Current Action` for the current iteration;
-- keep `Items` limited to current and remaining work;
-- use `Progress` for at most 1-3 meaningful results or signals;
-- add `Constraints`, `Risks`, `Open Questions`, or `Decisions` only when needed for continuation;
-- use `Proof` for available evidence;
-- use `Next` for the next useful action.
+- If new knowledge does not change a decision, constraint, risk, order, or completion result, continue the nearest segment.
+- If it changes only the contents or order of current work, update the nearest segment.
+- If it changes the goal, constraints, dependencies, risks, completion criteria, or problem framing, rebuild the basis locally before continuing.
+- If the nearest segment produced its completion result, close it and open the next honest segment.
+- If repeated exploratory iterations do not reduce decision-relevant uncertainty, narrow the question or rebuild the basis.
 
-Do not turn `TODO.md` into a reasoning transcript, signal journal, hypothesis dump, detailed decision map, or distant plan.
+To rebuild the basis locally, answer:
 
-Knowledge labels do not replace the task statuses defined by the project.
+1. What changed?
+2. Which previous assumption no longer holds?
+3. Which goal, constraint, dependency, risk, or completion criterion is affected?
+4. What remains valid?
+5. Which provisional route elements must change?
+6. What is now the nearest honestly plannable segment?
 
-## Keep Working State Minimal
+Do not invoke another skill for this transition.
 
-Do not create signal logs, hypothesis lists, decision maps, state files,
-progress files, or other working documents by default.
+## Answer Direction Questions
 
-Create a separate artifact only when the work genuinely requires durable
-structure outside the current task state or the user explicitly requests it.
+When the user asks what comes next, where to move, what stage opens now, or an equivalent direction question, always show:
+
+```text
+Target contour
+Nearest segment and its completion result
+First current action
+Provisional next segments or forks
+Far horizon
+What could change the route
+```
+
+Show the navigation frame again after closing a segment, materially changing the route, or resuming the work. During ordinary intermediate updates, do not repeat an unchanged frame.
+
+Keep the answer concise, but do not achieve brevity by removing navigation layers or reducing the segment to one action.
+
+## Boundaries
+
+- Do not attempt to enter or invoke Codex Plan mode. If the user already selected it, apply this method inside the active mode.
+- Do not create signal logs, hypothesis lists, decision maps, state files, progress files, or other working artifacts by default.
+- Create a separate artifact only when the work genuinely requires durable structure or the user explicitly requests it.
+- Do not expose hidden reasoning or turn the method into a ceremonial report.
 
 ## Finish A Pass
 
 A good pass produces:
 
-- one concrete result;
-- an expected signal;
-- an actual signal;
-- an honest knowledge status;
-- an updated nearest segment or decision map when needed;
-- a clear next step;
-- less uncertainty than before.
+- a concrete output or verified result;
+- honest knowledge status where uncertainty remains;
+- an updated nearest segment or locally rebuilt basis when needed;
+- a clear first current action;
+- a provisional view of what follows;
+- less decision-relevant uncertainty than before.
 
 Use the final check:
 
 ```text
-Is it now easier to choose the next correct step?
+Is the nearest segment clear?
+Is its completion result defined?
+Is its place in the provisional route visible?
+Are later stages still marked as provisional rather than promised?
 ```
 
-For detailed definitions, transition logic, failure modes, checklists, and examples, read `references/method.md`.
+Read `references/method.md` when detailed definitions, transition logic, failure modes, or worked examples are needed.

@@ -20,7 +20,7 @@
 
 Если нужен проектный слой памяти:
 
-1. Установить `manage-project-tasks` через project installer.
+1. Установить `manage-project-tasks` глобально или в нужный проект.
 2. Установить `nearest-clarity`, если в проекте часто есть неопределённость,
    короткие итерации и меняющаяся рамка работы.
 
@@ -70,8 +70,8 @@
 | [`export-current-thread`](skills/export-current-thread) | Утилита | Когда нужно явно экспортировать текущую Codex-ветку в локальный `.txt` файл. |
 | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Глобальный | Когда нужен переносимый визуальный prompt для image models, без генерации изображения. |
 | [`manage-beget-site`](skills/manage-beget-site) | Глобальный | Когда нужно безопасно исследовать, опубликовать, обновить, перенести, восстановить или проверить сайт на Beget. |
-| [`manage-project-tasks`](skills/manage-project-tasks) | Project workflow | Когда проекту нужен долговременный `TODO.md`, статусы задач и архив закрытой работы. |
-| [`nearest-clarity`](skills/nearest-clarity) | Project workflow | Когда работа идёт через ближайшую ясность: короткие итерации, сигналы, проверяемые участки и честную неопределённость. |
+| [`manage-project-tasks`](skills/manage-project-tasks) | Глобальный или проектный | Когда проекту нужен долговременный `TODO.md`, статусы задач и архив закрытой работы. |
+| [`nearest-clarity`](skills/nearest-clarity) | Глобальный или проектный | Когда при настоящей неопределённости нужно определить ближайший участок и сохранить честную перспективу дальнейшего пути. |
 
 ## Типы
 
@@ -81,9 +81,9 @@
 **Утилита** вызывается явно для конкретного действия. Например,
 `export-current-thread` не должен включаться сам.
 
-**Project workflow** ставится внутрь конкретного проекта и обычно требует
-изменения корневого `AGENTS.md`. Это уже не просто skill-папка, а маленький
-рабочий контракт для проекта.
+**Глобальный или проектный skill** одинаково работает при установке в Codex
+skills или в `.agents/skills/` конкретного проекта. Место установки выбирает
+пользователь; дополнительный контракт в `AGENTS.md` не требуется.
 
 ## Установка одного глобального skill
 
@@ -159,62 +159,31 @@ preflight-brief. Ограниченный контекст помечается 
 реализацию: требования, guardrails, traceability, проверки, readiness status и
 готовую команду для следующего Codex-чата.
 
-## Project workflow installers
+## Manage Project Tasks
 
-`manage-project-tasks` и `nearest-clarity` лучше ставить не как обычные
-глобальные skills, а через project installer.
+`manage-project-tasks` устанавливается как обычный skill: глобально или в
+`.agents/skills/` конкретного проекта. Дополнительный installer и изменения
+`AGENTS.md` не нужны.
 
-Project installer - это bootstrap-документ для Codex. Он не дублирует
-содержимое skill-файлов. Каноническое содержимое лежит в `skills/<skill-name>/`,
-а installer объясняет, как встроить workflow в конкретный проект:
+При первой реальной записи задачи skill сам создаёт корневой `TODO.md`, если
+совместимой task-системы ещё нет. Закрытые задачи появляются в ленивом архиве
+`archive/tasks/YYYY-MM.md`; пустой архив заранее не создаётся.
 
-- скопировать project skill в `.agents/skills/...`;
-- обновить корневой `AGENTS.md`;
-- сохранить существующие проектные правила;
-- не создать второй конфликтующий workflow;
-- показать финальный diff перед коммитом.
+## Nearest Clarity
 
-### Task system
+`nearest-clarity` устанавливается как обычный skill: глобально или в
+`.agents/skills/` конкретного проекта. Дополнительный installer, изменения
+`AGENTS.md`, task-система и другие skills для работы не требуются.
 
-Из корня целевого проекта попросите Codex:
+Место установки определяет только область доступности. Сам метод одинаково
+сохраняет целевой контур, ближайший участок, предварительные следующие участки
+и дальний горизонт при любом варианте установки.
 
-```text
-Read and apply this installer to the current project:
-https://raw.githubusercontent.com/dezvin/codex-skills/main/installers/codex-todo-system.md
+## Проектная установка skill
 
-Install only the necessary project files, preserve existing project conventions
-when the installer allows it, and show the final diff before committing.
-```
-
-Что появится в проекте:
-
-- короткий раздел `Project Task Tracking` в `AGENTS.md`;
-- `.agents/skills/manage-project-tasks/`;
-- `TODO.md`, если его ещё нет;
-- ленивый архив закрытых задач, например `archive/tasks/YYYY-MM.md`.
-
-### Nearest clarity
-
-Из корня целевого проекта попросите Codex:
-
-```text
-Read and apply this installer to the current project:
-https://raw.githubusercontent.com/dezvin/codex-skills/main/installers/nearest-clarity-method.md
-
-Install only the necessary project files, preserve existing project conventions
-when the installer allows it, and show the final diff before committing.
-```
-
-`nearest-clarity` ожидает, что глобальный `zoom-out` доступен. Во время
-итерационной работы `nearest-clarity` остаётся родительским процессом, а
-`zoom-out` используется только как зависимый пересмотр рамки, когда меняется
-основание работы.
-
-## Skill-only установка project workflow
-
-Используйте skill-only установку для `manage-project-tasks` и
-`nearest-clarity` только если проект уже подготовлен: есть правильный
-`AGENTS.md`, понятная task-система или согласованная политика workflow.
+Чтобы установить `manage-project-tasks` только в текущий проект, укажите
+`.agents/skills` как место назначения. Дополнительная подготовка проекта не
+требуется.
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
@@ -222,6 +191,9 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
   --path skills/manage-project-tasks `
   --dest .agents\skills
 ```
+
+`nearest-clarity` устанавливается в проект тем же способом и не требует
+дополнительной подготовки:
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
@@ -453,14 +425,10 @@ skills/
   zoom-out/
     agents/
     SKILL.md
-installers/
-  codex-todo-system.md
-  nearest-clarity-method.md
 ```
 
 Каждый skill лежит в отдельной папке, чтобы его можно было устанавливать
-независимо. Project workflow installers лежат отдельно, потому что они могут
-менять файлы за пределами skill-папки.
+независимо.
 
 ## Проверка
 

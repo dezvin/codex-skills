@@ -1,7 +1,11 @@
 interface:
   display_name: "Nearest Clarity"
-  short_description: "Короткие циклы для сложной работы"
-  default_prompt: "Use $nearest-clarity to find the nearest clear segment, expected signal, and next correct step."
+  short_description: "Ближайший участок и честная перспектива дальнейшего пути"
+  default_prompt: >-
+    Use $nearest-clarity to preserve the target contour, define the nearest
+    bounded segment and its completion result, identify the first current
+    action, show the next provisional segments and far horizon, and update only
+    the part of the route affected by new evidence.
 
 policy:
   allow_implicit_invocation: true

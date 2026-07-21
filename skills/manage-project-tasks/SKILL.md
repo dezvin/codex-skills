@@ -1,43 +1,78 @@
 ---
 name: manage-project-tasks
 description: >-
-  Use before any mutation of `TODO.md` or the project task archive, and when
-  starting or continuing durable tracked work, soft-capturing unfinished work,
-  changing task lifecycle state, recording blockers, closing, cancelling,
-  archiving, or reconstructing state for resumption, closure, proof
-  verification, or deduplication. Do not use for simple read-only listing,
-  filtering, existence checks, brief explanation of current entries, targeted
-  lookup of a closed result, or when task files are only input to another
-  workflow. When `TODO.md` is input to choosing a direction under genuine
-  uncertainty, let `nearest-clarity` own the workflow and use this skill only
-  if durable task state must be persisted.
+  Use before changing `TODO.md` or `archive/tasks/YYYY-MM.md`, and when the
+  user asks to add, remember, start, continue, update, block, close, cancel,
+  archive, deduplicate, or reconstruct durable project task state. Also use
+  implicitly when authorized project work becomes unfinished, blocked, or
+  creates independent follow-up that must survive the current session. Do not
+  use merely because work is complex or multi-step, for work completed within
+  the current session, for discussion or speculation that has not become
+  project work, for simple read-only listing or filtering, or when task files
+  are only input to another workflow.
 ---
 
 # Manage Project Tasks
 
-Own the runtime procedure for durable project tasks. Keep open work in
-`TODO.md`, closed work in the task archive path declared by root `AGENTS.md`,
-and detailed task history out of chat memory.
+Manage durable project work without depending on installation location,
+external project instructions, conversation memory, or another task protocol.
+Keep open work in `TODO.md`. Archive closed work lazily in
+`archive/tasks/YYYY-MM.md`, using the task's closure month.
 
-Root `AGENTS.md` owns the always-loaded trigger, allowed statuses, and critical
-safety invariants. This skill owns how to carry them out.
+Project task statuses describe only the durable ledger. Do not map them to or
+use them to change Codex goal, plan, session, or execution states.
 
-## Choose The Mode
+## Decide Whether State Must Persist
 
-Choose exactly one mode for the current work:
+Write task state only when authorized project work must survive the current
+session. Persist it when work remains unfinished, becomes concretely blocked,
+or produces independent required follow-up. Capture at the nearest natural
+checkpoint, such as after a bounded result, before a forced stop, when a
+blocker appears, or before ending the session.
 
-- `No TODO`: use for short self-contained work that should not survive the
-  session. Do not read or modify task files.
-- `Soft capture`: use when spontaneous work grows, remains unfinished, becomes
-  blocked, creates independent follow-up, or otherwise must survive the
-  session. Capture it at the nearest natural checkpoint; do not pretend it was
-  tracked from the start.
-- `Tracked`: use when the user explicitly asks to add, remember, continue,
-  update, block, close, cancel, archive, or reconstruct durable task state, or
-  when work starts from an existing `TODO.md` task.
+Do not create task state for:
 
-The number of implementation steps does not determine the mode. Durability
-does.
+- work completed in the current session;
+- discussion, advice, ideas, or hypotheses that have not become project work;
+- several steps that are being completed now;
+- complexity, duration, or risk alone;
+- read-only task listing, filtering, existence checks, brief explanation of a
+  current entry, or targeted lookup of a closed result.
+
+An explicit request to remember or add future work is sufficient reason to
+persist it.
+
+## Resolve The Project And Storage
+
+Determine the project root independently of where this skill is installed.
+Prefer, in order:
+
+1. the project path explicitly named by the user;
+2. the nearest ancestor containing the canonical `TODO.md`;
+3. the nearest Git root;
+4. the current working directory.
+
+If plausible roots or task systems would lead to different writes, stop and
+ask. Treat `todo.md`, `TODO.MD`, another archive convention, or a custom task
+schema as possible existing systems; do not rename, merge, or replace them
+silently.
+
+For this system:
+
+- the canonical open-task file is `<project-root>/TODO.md`;
+- the fixed archive pattern is `<project-root>/archive/tasks/YYYY-MM.md`;
+- archive directories and files are created only on the first real closure.
+
+When a task must be written and no task system exists, create `TODO.md`
+without a separate confirmation using this minimal content:
+
+```md
+# TODO.md
+
+Open project work that must survive the current session.
+```
+
+Do not create a demonstration task or an empty archive.
 
 ## Read Before Mutation
 
@@ -51,31 +86,31 @@ Before changing `TODO.md` or the task archive:
 3. Read
    [references/system-maintenance.md](references/system-maintenance.md) only
    when changing the task system, migrating task data, cleaning up several
-   tasks, or handling an uncertain structural case.
+   tasks, handling an uncertain structure, or testing this skill.
 4. Read only matching archive records or monthly files. Do not scan the entire
    archive during ordinary work.
 
 Do not rely on conversation memory, a compacted summary, or an earlier reading
 for exact templates, archive shape, or closure order. The task operation
-itself, not awareness of compaction, triggers the required read.
+itself triggers the required read.
 
 ## Create Or Capture A Task
 
 1. Confirm that the work must survive the session.
 2. Find the relevant existing `Project` and `Area`; create either only when
    genuinely necessary.
-3. Check the nearby open tasks for an obvious duplicate.
+3. Check nearby open tasks for an obvious duplicate.
 4. Put current, near-current, or blocked work in `Active`; put future work in
    `Later`.
 5. Use only `pending`, `in_progress`, `blocked`, `done`, or `cancelled`.
 6. Use the applicable canonical template from `task-templates.md`.
-7. Write only durable state. Do not preserve chat narration or speculative
-   detail.
+7. Write only the durable state needed for continuation. Do not preserve chat
+   narration, a reasoning transcript, or speculative detail.
 
 An explicitly requested future task normally starts as `pending` in `Later`.
-Soft-captured work may start in `Active` when work is already underway.
+Work captured after execution has begun may start as `in_progress` in `Active`.
 
-## Start Or Continue Tracked Work
+## Start Or Continue Work
 
 Before implementation:
 
@@ -83,18 +118,21 @@ Before implementation:
 2. Move it to `Active` when needed.
 3. Set `Status: in_progress`.
 4. Update `Updated`.
-5. Write one concrete `Current Action`.
-6. Reconcile `Items` so one current item is marked `[~] in_progress` and
-   remaining work is honest.
+5. Mark exactly one bounded current work item as `[~] in_progress`.
+6. Write one concrete `Current Action` being performed now.
+7. Write `Next` as the action after the current action or the safe resumption
+   point after an interruption. Do not duplicate `Current Action` in `Next`.
 
 During and after work:
 
 - update only the affected task and surrounding structure;
+- update durable state when the status, current work item, resumption point,
+  blocker, acceptance condition, meaningful progress, or evidence changes;
+- do not rewrite the task after every technical step;
 - keep `Items` focused on current and remaining work;
 - compact completed items into at most one to three `Progress` bullets, then
   remove the corresponding `[x]` items;
-- put only available evidence in `Proof`;
-- keep `Next` concrete;
+- add `Proof` only when real evidence exists;
 - leave the task `in_progress` or `blocked` when work remains.
 
 Multiple tasks may be `in_progress`, but do not mark unrelated work active.
@@ -110,36 +148,41 @@ Record:
 - the specific reason;
 - completed progress that must not be lost;
 - the event or input that will unblock the task;
-- the next safe action, if one exists.
+- `Next` as the first safe action after unblocking.
 
-Do not invent dependency graphs, owners, lanes, or new statuses.
+Do not keep `Current Action` merely to make a blocked task look active. Do not
+invent dependency graphs, owners, lanes, or new statuses.
 
 ## Close Or Cancel
 
 Treat closure as one logical operation:
 
 1. Confirm the factual final status and available evidence.
-2. Read the closure and archive templates in `task-templates.md`.
-3. Read the active archive pattern from root `AGENTS.md` and determine the
-   monthly archive path from the closure month.
-4. Check for an existing record using `Project`, `Area`, task title, and
+2. For `done`, require real proof that the work was performed. For
+   `cancelled`, require a concrete cancellation reason; proof is optional.
+3. Read the closure and archive templates in `task-templates.md`.
+4. Determine `archive/tasks/YYYY-MM.md` from the closure month.
+5. Check for an existing record using `Project`, `Area`, task title, and
    `Created`. If `Created` is missing, use the source `Updated` or closure date
    as the stable migration date.
-5. Append or update one compact archive record.
-6. Read back and verify the archive record.
-7. Only after successful archive verification, remove the closed task from
+6. Append or update one compact archive record.
+7. Read back and verify the archive record.
+8. Only after successful archive verification, remove the closed task from
    `TODO.md`.
-8. Create a separate `pending` task when independent follow-up remains.
+9. Create a separate `pending` task when independent follow-up remains.
 
 If archive writing or verification fails, keep the task in `TODO.md`.
 
 `done` means the work was performed. `cancelled` means it was intentionally
-abandoned. Plans, discussion, promises, task existence, or "probably done" are
-not proof.
+abandoned. Plans, discussion, promises, task existence, or "probably done"
+are not proof.
 
-Routine task updates and normal closure do not need separate permission. Ask
-for explicit confirmation before deleting or merging an independent unfinished
-task, changing an agreed plan, or taking an action that may lose information.
+Routine creation, updates, capture, blocking, and factual closure do not need
+separate permission. Ask before deleting or merging an independent unfinished
+task, choosing between conflicting task systems, performing an ambiguous
+migration, overwriting contradictory durable state, or taking an action that
+may lose information. This skill does not add a separate approval rule for
+changing a plan; follow the authority already established for the task.
 
 ## Reconstruct Task State Or History
 
@@ -149,32 +192,10 @@ skill. Read only the relevant task sections directly when no durable state
 must be changed or reconstructed.
 
 Use this skill when current or historical task state must be reconstructed to
-resume work, close or cancel a task, verify proof, detect duplicates, rebuild a
-project's task state, or deduplicate closure. Search first by title, project,
-area, or keywords, then read only the relevant `TODO.md` sections and matching
-monthly archive files.
-
-## Integrate With Nearest Clarity
-
-`nearest-clarity` controls movement through uncertainty. This skill stores only
-durable task state.
-
-Using `TODO.md` as an information source does not make this skill the parent
-workflow. When the task is to choose a direction under genuine uncertainty,
-`nearest-clarity` owns the work. Invoke this skill only if the resulting
-durable task state must be persisted or reconstructed.
-
-For work that must survive the session:
-
-- `Goal` may hold the target contour;
-- `Current Action` holds the current iteration or concrete working step;
-- `Progress` holds compact meaningful results;
-- `Next` holds the next useful action;
-- add `Constraints`, `Risks`, `Open Questions`, or `Decisions` only when
-  necessary for continuation.
-
-Do not turn `TODO.md` into a reasoning transcript, signal journal, hypothesis
-dump, detailed decision map, or distant plan.
+resume work, close or cancel a task, verify proof, detect duplicates, rebuild
+a project's task state, or deduplicate closure. Search first by title,
+project, area, or keywords, then read only the relevant `TODO.md` sections and
+matching monthly archive files.
 
 ## Validate Task Changes
 
@@ -184,9 +205,10 @@ Batch related writes, then perform one final validation pass:
 2. Read back each changed monthly archive.
 3. Confirm every removed closed task exists in the archive exactly once.
 4. Confirm open tasks and their statuses remain in `TODO.md`.
-5. Confirm required fields and allowed statuses.
-6. Check UTF-8 readability after Cyrillic writes.
-7. Report briefly what changed and what was left untouched.
+5. Confirm required fields, field meanings, and allowed statuses.
+6. Confirm project task statuses did not change Codex runtime states.
+7. Check UTF-8 readability after Cyrillic writes.
+8. Report briefly what changed and what was left untouched.
 
 Do not repeat the same read-back after it passes.
 
@@ -199,6 +221,7 @@ Do not repeat the same read-back after it passes.
 - Do not create competing task skills, task protocols, progress logs,
   handoff files, state files, changelogs, ADRs, dependency graphs, or extra
   project-management layers without a demonstrated need or explicit request.
+- Do not modify external project instructions as part of this task system.
 - Do not change this task system as part of an ordinary task update.
 
 ## References
