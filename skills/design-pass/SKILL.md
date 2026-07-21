@@ -49,22 +49,32 @@ Use the first sufficient source:
 
 1. Use pasted text, attached content, provided file paths, exports, preflight briefs, or Decision Ledgers directly.
 2. When the request clearly concerns the current Codex task, use the visible context if it is sufficient. Label it as limited current context and do not claim full-history coverage.
-3. If missing earlier context could materially change the decision review or design, ask the user to provide a source or consent to export the available message history.
+3. If missing earlier context could materially change the decision review or design, ask the user to provide a source or consent to export the available observable work history.
 4. After explicit export consent, prefer a supported current-thread export capability when available. Otherwise run:
 
 ```powershell
-python "<this-skill-dir>\scripts\export_current_thread.py" --json
+python "<this-skill-dir>\scripts\export_current_thread.py" --temporary --json
 ```
 
 If `python` is unavailable but `py` exists:
 
 ```powershell
-py "<this-skill-dir>\scripts\export_current_thread.py" --json
+py "<this-skill-dir>\scripts\export_current_thread.py" --temporary --json
 ```
 
-Read `output_path` from the JSON result, read the exported `.txt`, and preserve its coverage warning. Do not paste the full transcript into chat.
+Read `output_path`, `character_count`, `estimated_token_count`, and the coverage warning from the JSON result. The export contains supported user and assistant messages, tool calls, full textual tool results, subagent messages, and selected technical events in chronological order. It deterministically excludes system and developer messages, hidden reasoning, unknown internal records, and explicitly typed binary content. It performs no model-based summarization, relevance filtering, or semantic deduplication.
 
-The consent question must be short and concrete. Explain that the export creates a local `.txt` in the system temporary directory, contains the available user/Codex message text, and may omit attachments, tool results, or inspected files. Ask whether to create it.
+If the export can responsibly fit in the available context, read it as evidence for the already selected target. Do not run a separate model pass to clean, summarize, or select relevant fragments. If it cannot fit, do not silently truncate it: ask the user whether to narrow the target, read the file in chunks with the additional context cost, or continue from visible context.
+
+Keep the export only for this design pass. After the source is no longer needed, delete it with:
+
+```powershell
+python "<this-skill-dir>\scripts\export_current_thread.py" --cleanup "<output_path>" --json
+```
+
+If cleanup fails, report the exact remaining path. Do not paste the full export into chat.
+
+The consent question must be short and concrete. Explain that the export creates a temporary local `.txt` containing the supported observable work history, including textual tool calls and results, while excluding system/developer instructions, hidden reasoning, and typed binary content. Ask whether to create it.
 
 If export is forbidden or declined, continue from provided or visible evidence when responsible. Otherwise ask for the missing source. Availability of an export tool or script is never consent.
 
@@ -141,4 +151,5 @@ Before finishing, verify that:
 - source limits and chronology conflicts are visible;
 - the output is proportionate to the task;
 - no export or file write occurred without explicit permission;
+- any temporary export created by this run was deleted or its exact remaining path was reported;
 - no implementation was performed by this design run.

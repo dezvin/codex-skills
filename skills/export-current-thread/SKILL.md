@@ -5,7 +5,7 @@ description: Use this skill only when the user explicitly invokes $export-curren
 
 # Export Current Thread
 
-Export the current Codex thread transcript to a UTF-8 `.txt` file. This skill is intentionally explicit-only because thread exports may contain private text, local paths, commands, and tool output.
+Export the observable work from the current Codex thread to a persistent UTF-8 `.txt` file. This skill is intentionally explicit-only because the export may contain private text, local paths, commands, and complete textual tool output.
 
 ## Procedure
 
@@ -21,7 +21,7 @@ python "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_curr
 py "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_current_thread.py" --json
 ```
 
-3. Read the script result. It includes `ok`, `output_path`, `thread_id`, `rollout_path`, and message counts.
+3. Read the script result. It includes `ok`, `output_path`, `thread_id`, `rollout_path`, event counts, byte and character counts, and a deterministic token estimate. Do not read the generated file unless the user's request also requires analyzing it.
 
 4. Answer the user in plain language: say that the export is ready and link the file path. Use this shape:
 
@@ -36,7 +36,12 @@ py "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_current_
 - Never edit, rewrite, normalize, or move original `rollout-*.jsonl` files.
 - Save the `.txt` in the first active workspace root from the thread context.
 - If no active workspace root is available, save the `.txt` on the user's Desktop.
-- Prefer visible `event_msg` records. Use `response_item` messages only as a fallback when visible records are absent.
+- Preserve supported user and assistant messages, tool calls, full textual tool results, subagent messages, and selected technical events in chronological order.
+- Use supported `response_item` records as the canonical source for messages and tool activity. Use only explicitly allowed non-duplicating `event_msg` metadata.
+- Exclude system/developer messages, hidden reasoning, token telemetry, unknown internal record types, and explicitly typed binary content through deterministic code rules.
+- Do not use a model to summarize, clean, reformat, select relevant fragments, redact heuristically, or deduplicate by textual similarity.
+- Remove only structurally proven duplicates with the same event or call identifier. Preserve identical wording when it belongs to distinct events.
+- Preserve large textual tool results in full. Replace known binary content with available type, size, MIME, path, URL, or identifier metadata.
 - Write UTF-8 without BOM.
 
 ## Failure Handling

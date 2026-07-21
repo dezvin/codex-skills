@@ -1,110 +1,237 @@
 ---
 name: handoff
-description: Create a compact continuation handoff and a ready-to-use prompt for a fresh Codex chat. Use when the user wants to preserve working state, continue in a new session, transfer ongoing work, or prepare another AI agent to resume without rereading the conversation.
+description: >-
+  Create or update a compact, portable handoff of selected ongoing work and a
+  continuation prompt for a fresh chat or agent. Use when the user wants to
+  transfer a specific task, project, recent work segment, or active work contour
+  without making the next agent reread the conversation. When relevant Codex
+  history may have fallen outside visible context, recover it with the bundled
+  Codex-only temporary export before writing the handoff. Do not use for an
+  ordinary summary or status update, a full transcript export, durable TODO
+  capture, implementation design, continuation in the same chat, or native
+  thread resume, fork, or transfer.
 ---
 
 # Handoff
 
-Create two outputs:
+Transfer the minimum working state a fresh agent needs to continue the selected
+work correctly. Do not produce a chronological conversation summary.
 
-1. A Markdown handoff file containing the minimum working state a fresh agent needs.
-2. A complete continuation prompt the user can send with that file in a new Codex chat.
+The user's handoff request authorizes creating the final handoff artifact and,
+when necessary, temporarily reading the current Codex thread through the
+bundled export script. It does not authorize transferring the whole
+conversation or broadening the next agent's permissions.
 
-The handoff is not a chronological conversation summary. Preserve information whose loss could cause a wrong next action, violated constraint, reopened decision, or repeated work. Remove conversational prose, intermediate reasoning, repetition, stale branches, and detail already captured in durable artifacts.
+## Establish The Transfer Scope
 
-## Determine focus and location
+Determine what must continue before choosing a history source:
 
-- If the user supplied a next-session focus, prioritize it. Otherwise infer the focus from the active task.
-- Write the handoff and continuation prompt in the primary language of the current conversation unless the user requests another language.
-- Derive a short, specific topic and normalize it to lowercase kebab-case for the filename.
-- When the work belongs to a project, search upward from the current working directory and save the file in the nearest ancestor that represents the project root. Infer it from available project metadata, manifests, configuration, source layout, or repository markers.
-- When the work is not project-based or no project root can be identified, use the operating system's temporary directory.
-- Use `handoff-<topic>.md`.
-- If the user provides an existing handoff path and asks to update, refresh, amend, or replace it, read that file first and update it in place. Do not create a numbered copy.
-- When creating a new handoff, never overwrite an existing file. On conflict, use the first available numbered name: `handoff-<topic>-2.md`, `handoff-<topic>-3.md`, and so on.
+- a specific task;
+- a specific project;
+- the latest bounded segment of work;
+- the full active work contour.
 
-## Write the handoff
+Use the focus named by the user. Otherwise infer one only when the current work
+has a single clear contour. If several tasks, projects, or plausible boundaries
+would produce materially different handoffs, ask one short question about what
+to transfer.
 
-Use only relevant sections and omit empty ones:
+Exclude unrelated work even when it appears in the same chat or export.
+
+## Select The Best Available History
+
+Use visible context when it is sufficient to recover the selected scope.
+
+Use the bundled Codex-only export when earlier relevant state may be missing
+because of compaction, truncation, a long conversation, a visible mid-task
+start, or a user request to recover an older part of the current thread.
+
+Run the export only when all of these are true:
+
+- the environment is Codex;
+- `CODEX_THREAD_ID` or a user-supplied current thread ID is available;
+- Python can run the bundled script;
+- the matching Codex rollout can be verified.
+
+Run from this skill directory:
+
+```powershell
+python .\scripts\export_current_thread.py --temporary --json
+```
+
+If `python` is unavailable but `py` exists:
+
+```powershell
+py .\scripts\export_current_thread.py --temporary --json
+```
+
+The script writes a temporary UTF-8 `.txt` and returns its exact `output_path`,
+size, estimated token count, and coverage warning. It preserves supported user
+and assistant messages, tool calls, full textual tool results, subagent
+messages, and selected technical events in chronological order. It
+deterministically excludes system/developer messages, hidden reasoning,
+unknown internal records, and explicitly typed binary content. It does not use
+a model to summarize, clean, select relevant fragments, or deduplicate text.
+
+If the export can responsibly fit in the available context, read it as
+evidence for the already selected transfer scope. Do not add a preliminary
+model pass for relevance selection. If it cannot fit, ask the user whether to
+narrow the scope, read the file in chunks with the additional context cost, or
+continue from visible context.
+
+After the handoff is complete, delete the exact temporary file with:
+
+```powershell
+python .\scripts\export_current_thread.py --cleanup "<output_path>" --json
+```
+
+Do not copy the export into `.handoffs`, attach it to the continuation prompt,
+or present it as a source for the next agent. If cleanup fails, report the
+exact remaining path. The export can still omit attachments, inspected file
+contents, or unsupported future record types. Inspect important current
+artifacts directly when feasible.
+
+Do not run this Codex script in ChatGPT, Claude, Gemini, or another environment
+unless that environment's compatible history mechanism has been implemented
+and verified independently. If reliable export is unavailable, use visible
+context and label its coverage honestly. Do not reconstruct missing history
+from vague memory.
+
+## Establish Current Evidence
+
+Before writing a project handoff, inspect only the state that can change the
+next action. When relevant, record:
+
+- project root;
+- current Git branch and commit;
+- modified and untracked files;
+- created artifacts;
+- checks actually run and their results;
+- unfinished processes or material errors;
+- exact paths or URLs of primary sources of truth.
+
+Reference large plans, specifications, logs, diffs, research, and other durable
+artifacts instead of copying them. State briefly why each important artifact
+matters.
+
+Treat the handoff as a compact snapshot, not a source of truth. Current user
+messages and current authoritative artifacts override stale handoff details.
+
+## Preserve The Authorization Boundary
+
+State what the next agent is authorized to do, such as:
+
+- analyze and report without changes;
+- design without implementation;
+- draft without sending or publishing;
+- make in-scope local changes and validate them;
+- act only after a new confirmation;
+- continue autonomously within a named safe boundary.
+
+Do not convert an earlier approval into reusable permission for external,
+destructive, costly, privileged, or scope-expanding action. Do not treat an
+assistant proposal as a user decision.
+
+## Write The Handoff
+
+Write in the user's current human-facing language. Determine it from recent
+direct user messages, not from source files, code, tool output, or exported
+history. If the user mixes languages, use the dominant language of their
+direct instructions. Preserve paths, commands, identifiers, field names, and
+exact quoted strings as written.
+
+Use this core structure:
 
 ```markdown
 # Handoff: <topic>
 
-## Goal
+Context coverage: <verified Codex history or visible context and its limit>
+
+## Goal and done condition
+## Transfer scope
+## Current task and authorization
 ## Current state
 ## Decisions and constraints
-## Facts, assumptions, and verification
-## Artifacts and sources of truth
-## Work completed
-## Remaining work
-## Next action
-## Suggested skills
+## Sources of truth and workspace state
+## Completed
+## Remaining
+## First action
+```
 
-## Open questions
+Add only relevant conditional sections:
+
+```markdown
+## Facts, assumptions, and what to verify
 ## Blockers
-## Failed attempts
 ## Do not redo
+## Material failed attempts
 ## Risks
 ```
 
 Apply these rules:
 
-- Make the goal and next action concrete.
-- Preserve exact user requirements, constraints, accepted decisions, and rejected approaches that still matter.
-- Include `Facts, assumptions, and verification` only when material uncertainty affects the next work. Within it, separate `Confirmed facts`, `Assumptions`, and `Must verify` so the next agent does not treat an inference as established fact.
-- For non-development work, preserve only relevant domain context such as the audience, intended outcome, deliverable format, tone, channel, stakeholder constraints, accepted or rejected directions, and what makes the result useful.
+- Make the goal, done condition, and first action concrete.
+- Preserve exact user requirements, accepted decisions, rejected approaches
+  that still constrain the work, and material unknowns.
+- Separate confirmed facts, user decisions, assumptions, and items that still
+  require verification.
 - Distinguish completed work from remaining work.
-- Record failed attempts only when they prevent repetition or explain the current state.
-- Reference existing PRDs, plans, research, ADRs, issues, commits, diffs, and other artifacts by exact path or URL instead of duplicating them.
-- For each important artifact, state briefly why it matters and identify the primary source of truth when useful.
-- In `Suggested skills`, use only exact names of skills available in the current session. Explain briefly when and why each should be invoked. If the available skill list cannot be inspected, omit the section instead of inventing skill names. Do not add filler suggestions.
-- Redact API keys, passwords, tokens, credentials, and other secrets. Omit unnecessary personal or private client data. Preserve necessary local paths and describe required secrets abstractly, such as "the API key is available in the environment."
+- Record failed attempts only when they prevent repetition or explain current
+  state.
+- Redact keys, passwords, tokens, credentials, and unnecessary private data.
+- Do not add a generic section recommending other skills.
 
-## Generate the continuation prompt
+## Choose The Output Form
 
-After saving the handoff, create a fully populated, concise prompt optimized for Codex with GPT-5.5. Use an outcome-first contract: goal, current task, context, critical constraints, and a verifiable completion condition. Leave room for the agent to choose an efficient execution path.
-
-Do not leave placeholders. Mention only the handoff and the few primary artifacts the next agent should read first.
-
-For project work, use this shape:
-
-```markdown
-Continue the work from this handoff: @<absolute-handoff-path>.
-
-## Goal
-<desired outcome>
-
-## Current task
-<the concrete task to resume>
-
-## Read first
-1. @<absolute-handoff-path>
-2. @<primary-artifact-path> - <why it matters>
-
-## Critical constraints
-- <only constraints that materially govern the work>
-- Do not repeat work marked completed or listed under `Do not redo`.
-
-## Done when
-- <verifiable completion condition>
-
-Read the handoff and listed sources of truth first, inspect the current project state, and then continue the work. Treat my messages and current source-of-truth artifacts as authoritative over stale handoff details. If sources conflict, identify the conflict and use the current evidence. Do not stop at summarizing the handoff or proposing a plan; execute the task unless I explicitly request planning only. Ask a question only when genuinely blocked and the answer cannot be safely discovered from the available context.
-```
-
-For projectless work, replace `@<absolute-path>` references with the names of files the user should attach to the new chat.
-
-Use `/goal` only for long-running work with one durable objective and a verifiable stopping condition. Do not use it for open-ended research, loosely related tasks, or work that still needs problem framing.
-
-## Return to the user
-
-Return:
+When a writable project root exists, create:
 
 ```text
-Handoff saved: <absolute path>
-
-Start the next Codex chat with this file attached and the following prompt:
-
-<complete continuation prompt>
+<project-root>/.handoffs/handoff-<topic>.md
 ```
 
-Before finishing, check that a fresh agent could understand the goal and constraints, locate the sources of truth, avoid repeating completed work, and begin the correct next action.
+Create `.handoffs` lazily on the first real handoff. Do not edit `AGENTS.md`,
+`.gitignore`, or another project file. Derive a short lowercase kebab-case
+topic. If the user supplies an existing handoff path and asks to refresh it,
+read it first and update it in place. For a new handoff, never overwrite an
+existing file; use `-2`, `-3`, and so on.
+
+When work is not project-based but file creation is available, save the file
+in the operating system's temporary directory.
+
+When the environment cannot create files, return one self-contained
+continuation prompt containing all required handoff information. Do not claim
+that a file was created. Keep the same scope, evidence status, authorization
+boundary, and first action as the file-based form.
+
+## Generate The Continuation Prompt
+
+For a file-based handoff, return a short, fully localized prompt that points to
+the handoff without duplicating it:
+
+```markdown
+Continue the work from @<absolute-handoff-path>.
+
+Current task: <concrete task>.
+Done when: <verifiable completion condition>.
+
+Read the handoff and its sources of truth first, then inspect the current
+state. Continue only within the recorded authorization boundary. Do not repeat
+completed work. If the handoff conflicts with my newer messages or current
+authoritative artifacts, identify the conflict and use the current evidence.
+```
+
+Translate the entire prompt into the user's language. Do not mention a model
+version. Do not activate Codex planning or goal modes. Do not tell the next agent to execute
+when the recorded authorization is analysis-only, design-only, draft-only, or
+confirmation-gated.
+
+## Return To The User
+
+For a created file, return its absolute path and the complete short
+continuation prompt. For an inline handoff, return the single self-contained
+prompt and state that the environment could not create a file.
+
+Before finishing, verify that a fresh agent can identify the selected work,
+understand the current state and authority boundary, find current sources of
+truth, avoid repeated work, and begin the correct first action. Also verify
+that any temporary export was deleted or report its exact remaining path.

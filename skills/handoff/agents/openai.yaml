@@ -1,0 +1,9 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Перенос рабочего состояния в новый чат"
+  default_prompt: >-
+    Use $handoff to preserve selected ongoing work for a fresh chat or agent
+    and provide the correct continuation prompt.
+
+policy:
+  allow_implicit_invocation: true

@@ -37,7 +37,7 @@ Do not infer acceptance from tone, silence, continued discussion, or an assistan
 Classify the source accurately:
 
 - **Provided source**: pasted text, attached content, or a supplied local file.
-- **Available message-history export**: user and Codex message text extracted from the local task record; it may omit attachments, tool results, inspected files, or other runtime state.
+- **Observable work-history export**: supported user and assistant messages, tool calls, full textual tool results, subagent messages, and selected technical events extracted from a verified local task record. It deterministically excludes system/developer instructions, hidden reasoning, unknown internal records, and typed binary content; it may still omit attachments, inspected file contents, or unsupported future record types.
 - **Limited current context**: only the conversation currently visible to the model.
 - **Existing decision artifact**: a preflight brief or Decision Ledger supplied as a shortcut; it may still be stale or incomplete.
 
@@ -171,7 +171,7 @@ Correct these failures before continuing:
 - treating silence as approval;
 - flattening conflicts into a smooth narrative;
 - relying on invisible chat memory as complete evidence;
-- claiming complete history from limited context or an available-message export;
+- claiming complete history from limited context or an observable-work export;
 - asking every open question instead of only critical ones;
 - displaying the entire ledger when a compact review is sufficient;
 - creating files or exporting the task without current-user permission.
