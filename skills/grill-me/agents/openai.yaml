@@ -1,7 +1,10 @@
 interface:
   display_name: "Grill Me"
-  short_description: "Stress-test plans with useful questions."
-  default_prompt: "Use $grill-me to stress-test this plan with high-impact questions."
+  short_description: "Проверка решения одним важным вопросом за раз"
+  default_prompt: >-
+    Use $grill-me to stress-test this plan, idea, or decision one
+    high-leverage question at a time, preserve decisions already made,
+    and stop when no material user-owned decision remains unresolved.
 
 policy:
   allow_implicit_invocation: false

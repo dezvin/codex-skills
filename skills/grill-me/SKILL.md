@@ -1,266 +1,152 @@
 ---
 name: grill-me
-description: Stress-test a plan, design, or non-dev creation task by asking one high-leverage question at a time until the important decision branches are resolved. Use when the user wants to be grilled, challenge a plan, expose hidden assumptions, clarify scope, audience, desired outcome, risks, ownership, user-facing behavior, work shape, what to trust when inputs conflict, readiness before preflight/design-pass/implementation, or the smallest useful test. Do not use for exhaustive questionnaires, fixed domain menus, low-level implementation defaults, cosmetic details, ordinary feedback, or decisions that can be safely handled by reasonable defaults.
+description: Conduct a deliberate one-question-at-a-time stress test of a plan, idea, or decision until no material user-owned decision remains unresolved. Use only when the user explicitly invokes $grill-me or directly asks to be grilled, interviewed, challenged, or questioned before proceeding. Do not use for ordinary feedback, fact gathering, exhaustive questionnaires, implementation, or decisions that can be handled through inspection, a reversible default, or a practical test.
 ---
 
 # Grill Me
 
-Stress-test the user's plan without wasting their attention. The goal is not to ask about everything. The goal is to resolve the important branches that change the plan, risk, scope, behavior, ownership, outcome, or next step.
+Clarify the decisions that only the user can make before the next stage. Do not try to eliminate every uncertainty or ask about every aspect of the work.
 
 ## Core Contract
 
-- Ask one question at a time.
-- Ask only high-leverage questions: the answer must change a meaningful decision.
-- For each question, explain why it matters and provide your recommended answer.
-- Write user-facing questions and summaries in the user's language.
-- Do not ask the user to translate technical terms. Turn internal concepts into concrete situations.
-- For non-dev or creation work, infer the work shape before choosing what to ask.
-- Do not classify the work into a fixed domain and do not present a domain menu.
-- Synthesize the important decision surfaces from the work shape, then ask about one surface at a time.
-- For obvious, reversible, conventional, or low-risk details, choose a reasonable default and record it in the next summary instead of asking.
-- If an answer can be found from named or clearly relevant files, inspect read-only instead of asking. Keep inspection narrow and do not broaden into repository exploration unless the question truly cannot be answered responsibly without it. Do not edit files.
-- Ask the user only for decisions that change meaning, risk, ownership, or behavior. Do not make the user approve the agent's mechanical work.
-- Stop or zoom out when the questions become too granular, repetitive, or visibly irritating.
+- Ask one material question at a time and wait for the answer.
+- Preserve explicit decisions already made in the current conversation. Do not ask them again.
+- Derive decision branches from the actual work instead of following a domain menu or checklist.
+- Give a brief recommended answer. Explain consequences or alternatives only when they are not obvious.
+- Write questions, orientation, and the final result in the user's language.
+- Inspect named or clearly relevant sources read-only when they can answer a factual question. Keep inspection narrow and do not edit files.
+- Choose reasonable reversible defaults without asking, and record them for the final result.
+- Stop when no material user-owned decision remains unresolved.
+- Recommend a next stage when useful, but do not invoke another skill, activate a Codex mode, design, plan, or implement the work.
 
-## Inputs To Establish
+## Operating Loop
 
-Identify as much as the user provided:
+### 1. Establish The Current Decision
 
-1. The plan, design, idea, or decision being tested.
-2. What should exist if the work succeeds.
-3. The intended outcome or change.
-4. The audience, users, implementer, or affected people.
-5. Constraints, boundaries, and non-goals.
-6. Why the plan is expected to work.
-7. What assumptions must be true.
-8. What would make the plan risky, expensive, irreversible, or hard to undo.
-9. Who can make or confirm the decision.
-10. Whether the next step is `preflight`, `design-pass`, implementation, research, or another conversation.
+From the request and current conversation, identify:
 
-If the plan is too vague to grill, ask one framing question first.
+- the plan, idea, decision, or proposed work being tested;
+- the next decision or action this conversation is preparing;
+- explicit user decisions already made;
+- material constraints or boundaries already stated.
 
-## Work Shape Before Domain
+If the subject is too vague to derive a meaningful branch, ask one framing question. Do not start an intake survey.
 
-Do not adapt by choosing a domain label. Adapt by inferring the shape of the work:
+Re-open an earlier answer only when new information conflicts with it, changes its meaning, or reveals ambiguity that would materially distort the next stage. State the reason briefly before asking again.
 
-- What is being created or decided?
-- Who will use it, judge it, implement it, or be affected by it?
-- What should change because this exists?
-- What is inside the boundary, outside the boundary, or dangerous to include now?
-- Why should this approach work?
-- What must be true for it to work?
-- How could it fail, and what would make that failure expensive?
-- Who owns the decision or has the final say?
-- What is the smallest useful test, example, draft, or probe that would show progress?
+### 2. Derive A Material Branch
 
-These are lenses, not a checklist. Do not ask through every lens mechanically. Use them to find the next high-impact branch.
+Do not work through predefined categories. Derive the decision map from the task.
 
-## Decision Surface Synthesis
+A material branch exists when two plausible answers would lead to meaningfully different:
 
-Before asking, silently identify 1-3 decision surfaces. A decision surface is a place where the user's answer changes the result, risk, scope, ownership, readiness, or user-facing behavior.
+- outcomes or actions;
+- commitments or boundaries;
+- risks or costs of error;
+- downstream stages.
 
-Prioritize the surface with the highest practical leverage right now. Prefer surfaces that determine:
+Before asking, compare plausible answers to the candidate question. If they would not materially change what happens next, discard the question.
 
-- the desired outcome rather than only the visible output;
-- the primary audience or affected people;
-- boundaries and non-goals;
-- the success criterion;
-- the structure of the thing being created;
-- the causal logic behind why it should work;
-- a critical assumption;
-- a likely failure mode;
-- the decision owner;
-- the next step or smallest useful test;
-- what must not be done.
+Choose the earliest unresolved branch with the greatest practical leverage. Do not ask a lower-level question while a higher-impact user decision still controls it.
 
-If no surface is worth the user's attention, default, inspect, or stop.
+### 3. Route The Uncertainty
 
-## Question Worthiness Filter
-
-Before asking, silently check whether the answer would change one or more of:
-
-- purpose or success criteria;
-- audience or affected people;
-- scope or non-goals;
-- architecture or structure;
-- responsibility or ownership;
-- user-facing behavior or audience fit;
-- desired outcome or change;
-- causal logic;
-- a critical assumption;
-- what to trust when inputs conflict;
-- safety, risk, reversibility, or cost of error;
-- readiness for `preflight`, `design-pass`, or implementation;
-- the smallest useful test or next step;
-- what the agent should stop doing or must not do.
-
-If the answer would not change any of these, do not ask. Choose a default, inspect the relevant source, or ignore the detail.
-
-## What Not To Ask
-
-Do not stop the user for:
-
-- timestamp format;
-- minor file naming;
-- cosmetic phrasing;
-- obvious extension behavior;
-- reversible formatting;
-- default folder labels when the convention is already clear;
-- which domain category the task belongs to;
-- taxonomy labels that do not change the work;
-- implementation details that do not change risk, behavior, or scope.
-
-If the user explicitly asks for exhaustive low-level review, you may go deeper. Otherwise protect the user's attention.
-
-## How To Ask
-
-Ask in plain working situations, not internal jargon.
-
-Prefer:
+Assign each material uncertainty to the correct resolver:
 
 ```text
-If the chat says one thing and the file says another, which should win?
-My recommended answer: trust the current file for current state, but a later explicit user decision can override the rule to be changed.
+User intent or commitment -> ask
+Discoverable fact -> inspect
+Reversible low-risk detail -> choose a default
+Hypothesis answerable only in practice -> assign a test
+Difference that does not change the work -> ignore
 ```
 
-Avoid:
+Only the first category becomes a question for the user. Do not turn missing facts, mechanical work, or testable hypotheses into preference questions.
+
+### 4. Orient And Ask
+
+Before every new question, show exactly one compact orientation line in the user's language. For Russian, use exactly:
 
 ```text
-What is the source of truth?
+Решено: ... | Сейчас: ... | Остаётся: ...
 ```
 
-Prefer:
+For another language, translate these three labels without changing the one-line structure.
+
+Keep it to one line. Do not show counters, predicted question totals, a separate start summary, or a multi-line checkpoint.
+
+Then ask one naturally phrased question and give a concise recommendation:
 
 ```text
-When we say "replace the file", do you mean fully rewrite it or update only the needed parts?
-My recommended answer: update only the needed parts unless you explicitly say to rewrite the whole file.
+<one question>
+
+I would choose: <recommendation and brief reason>.
 ```
 
-Avoid:
+Do not automatically add separate sections explaining why the question matters, every alternative, or what each choice changes. Add that context only when the user needs it to make the decision responsibly.
 
-```text
-What is the replacement invariant?
-```
+### 5. Update The Decision Map
 
-Every question should include:
+After the answer:
 
-1. The question.
-2. Why it matters.
-3. Your recommended answer.
-4. What will change if the user chooses differently.
+- preserve the accepted decision;
+- revise only branches affected by the answer;
+- route newly exposed facts, defaults, and hypotheses correctly;
+- select the next highest-leverage user-owned branch;
+- finish instead of manufacturing another question when none remains.
 
-For non-dev or creation work, phrase the question through a concrete work situation:
+Do not target a fixed number of questions. If the user becomes irritated, asks to stop, or says the process is too granular, stop questioning and return the compact result with remaining branches visible.
 
-```text
-When this exists, what should be different for the people affected by it?
-My recommended answer: choose one primary change and treat everything else as support.
-If you choose differently: the work can cover more ground, but the success criterion becomes blurrier.
-```
+## Completion Gate
 
-Then wait for the user's answer before asking the next question.
+Before finishing, try to identify one unresolved user-owned branch that could:
 
-## Ask, Default, Inspect, Or Stop
+- change the required outcome;
+- materially change the boundary or commitment;
+- make the current direction wrong or materially riskier;
+- force the next agent or person to invent the user's intent.
 
-For each branch, choose one action:
+If such a branch exists, ask it. If the remaining uncertainty belongs to inspection, a reversible default, or a practical test, route it there and finish.
 
-- Ask: when the user must decide a meaningful branch.
-- Default: when the detail is low-risk, conventional, or reversible.
-- Inspect: when the answer is discoverable from provided, named, or clearly relevant files.
-- Stop: when the remaining questions no longer change the plan enough to justify the user's attention.
+Completion means:
 
-Record defaults so the user can correct them later:
+> The next stage can proceed without inventing a material user decision.
 
-```markdown
-Defaults I will assume:
-- <default> because <reason>
-```
+It does not mean the work is technically feasible, commercially validated, researched, implemented, or verified.
 
-## Checkpoints
+## Final Result
 
-After 5-7 high-impact questions for non-dev, non-tech, or creation work, after 7-10 high-impact questions for technical or design-heavy work, or earlier if the user shows fatigue, confusion, irritation, or says the questions are too granular, stop the interview and summarize:
-
-```markdown
-## Grill Checkpoint
-
-Working shape:
-- What is being created:
-- Who it affects:
-- Desired change:
-- Important boundaries:
-
-Decisions accepted:
-- ...
-
-Defaults I will assume:
-- ...
-
-Key assumptions:
-- ...
-
-Main risks:
-- ...
-
-Still worth asking:
-- ...
-
-Not worth asking:
-- ...
-
-Smallest useful test:
-- ...
-
-Recommended next question or next step:
-- ...
-```
-
-If the user reacts with "too much", "too granular", "unclear", "stop", "this is noise", or similar, do not defend the previous question. Zoom out, summarize the useful state, and continue only with high-impact questions if the user wants to continue.
-
-## Completion
-
-End the grilling when:
-
-- the important decision branches are resolved;
-- the remaining details can safely be defaulted;
-- the plan is ready for `preflight`, `design-pass`, implementation, or deliberate rejection;
-- the user asks to stop.
-
-Finish with:
+Return a compact result only when the interview ends or the user stops it. Use only relevant sections and omit empty ones:
 
 ```markdown
 ## Grill Result
 
-Working shape:
-- What is being created:
-- Who it affects:
-- Desired change:
-- Important boundaries:
-
-Decisions accepted:
+### Clarified decisions
 - ...
 
-Defaults assumed:
+### Working defaults
 - ...
 
-Key assumptions:
+### To inspect or test
 - ...
 
-Remaining high-impact questions:
+### Remaining user decisions
 - ...
 
-Risks still visible:
-- ...
+### Suitable next stage
+...
 
-Decision owner:
-- ...
-
-Smallest useful test:
-- ...
-
-Readiness:
-- ready for preflight / ready for design-pass / ready for implementation / need 1-2 more questions / better not start
-
-Recommended next step:
-- ...
+### Decision clarity
+User decisions are sufficient / insufficient for the next stage to proceed without inventing material user intent.
 ```
 
-Do not turn the result into a final design doc or implementation plan unless the user explicitly asks for that separate step.
+Recommend the suitable next stage without starting it. Do not claim readiness for implementation, technical feasibility, validation, or completion of the underlying work.
+
+## Boundaries
+
+- Do not use this skill for ordinary advice or feedback when the user did not explicitly request an interview.
+- Do not turn it into an exhaustive questionnaire or a fixed domain flow.
+- Do not create a design document, implementation plan, task system, state file, or handoff.
+- Do not activate Codex planning or goal modes.
+- Do not invoke `design-pass`, `zoom-out`, another skill, or implementation automatically.
+- Do not make the user approve mechanical, conventional, reversible, or discoverable details.
