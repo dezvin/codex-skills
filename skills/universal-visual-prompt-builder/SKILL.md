@@ -1,6 +1,6 @@
 ---
 name: universal-visual-prompt-builder
-description: "Use this skill for standalone image-prompt creation, refactoring, model/style/format adaptation, image editing, reference-based prompting, weak-result repair, prompt sets, and controlled variants from a brief, idea, image, or existing prompt. Produces prompt text but does not generate images. Do not use when a separate project-specific visual workflow owns the request or when the primary deliverable is broader content rather than an image prompt."
+description: "Use this skill for standalone image-prompt creation, refactoring, model/style/format adaptation, image editing, reference-based prompting, weak-result repair, prompt sets, and controlled variants from a brief, idea, image, or existing prompt. Selects a task-fit art direction when needed and translates it into medium-specific production controls. Produces prompt text but does not generate images. Do not use when a separate project-specific visual workflow owns the request or when the primary deliverable is broader content rather than an image prompt."
 ---
 # Universal Visual Prompt Builder
 
@@ -8,6 +8,11 @@ description: "Use this skill for standalone image-prompt creation, refactoring, 
 
 Create production-ready image-prompt text without depending on a repository,
 client system, hidden project files, or another skill.
+
+When the visual direction is open, select one task-fit artistic world instead
+of returning a routine style menu. Translate the selected medium into concrete
+production controls so it changes how the image is made, not only how the
+prompt labels it.
 
 Own only the image-prompt layer. Do not generate the image, write surrounding
 content, or invent a broader campaign, story, carousel, or publication plan.
@@ -102,7 +107,14 @@ Do not disguise a missing sequence decision as visual variation.
    the image, layout, edit target, preservation rule, reference assignment,
    exact text, format, or success criterion.
 6. If ambiguity is minor, use a conservative assumption and continue.
-7. Choose the simplest sufficient architecture:
+7. When the task needs a substantive new visual direction, silently compare
+   materially distant task-derived candidates under
+   `references/art-direction-selection.md` and select one. Do not run a broad
+   comparison for a locked style, preservation-heavy edit, strict reference,
+   or narrow correction.
+8. Translate the selected direction into the smallest useful set of
+   medium-specific production controls under `references/medium-integrity.md`.
+9. Choose the simplest sufficient architecture:
    - compact natural language for one dominant visual idea;
    - a structured brief for strict layout, several objects, references, or
      interacting constraints;
@@ -112,18 +124,19 @@ Do not disguise a missing sequence decision as visual variation.
      comparisons, process visuals, or educational diagrams;
    - a controlled edit instruction for preservation-heavy work;
    - a per-item structure for a set or sequence.
-8. Build from the task outward:
+10. Build from the task outward:
    - subject, function, or edit operation;
    - action, state, scene, or structure;
    - composition and attention hierarchy;
    - exact text and layout;
-   - task-derived style direction;
+   - selected task-derived art direction;
+   - medium-specific production process and craft controls;
    - format and crop constraints;
    - reference and preservation rules;
    - useful camera, light, material, or medium details;
    - hard constraints and targeted exclusions.
-9. Run the readiness and anti-drift checks below.
-10. Return the result using one of the output modes below.
+11. Run the readiness, medium-integrity, and anti-drift checks below.
+12. Return the result using one of the output modes below.
 
 Do not output the normalized working layer unless the user asks for analysis.
 
@@ -136,6 +149,12 @@ model-dependent details after verification.
 
 - Read `references/universal-prompting.md` for every substantive prompt build,
   refactor, or adaptation.
+- Read `references/art-direction-selection.md` when the task needs a
+  substantive new direction, the brief is visually open, or the obvious first
+  treatment remains generic. Do not use it to reopen a deliberately locked
+  style or preservation-heavy edit.
+- Read `references/medium-integrity.md` after selecting a new art direction or
+  whenever a named medium risks remaining a decorative label.
 - Read `references/editing-references.md` for base-image edits, reference
   images, identity preservation, annotated regions, transformation examples,
   text replacement, or close-result refinement.
@@ -203,6 +222,10 @@ instead of the Mode B wrapper.
 Before returning a prompt, confirm:
 
 - the visual goal and success criterion are preserved;
+- the selected art direction is derived from the task rather than from the
+  deliverable label or a habitual style bundle;
+- the medium is expressed through a coherent production process instead of
+  interchangeable digital-render language;
 - subject, action, and strongest constraint appear early;
 - exact text is unchanged and protected by layout when necessary;
 - important attributes are bound to named people, objects, regions, or zones;
@@ -245,6 +268,8 @@ Stop and ask for input when:
 - constraints are mutually incompatible in one image;
 - the requested model must support a capability that has not been established;
 - a prompt set lacks the item-level goals needed to distinguish its members;
+- a responsible direction cannot be selected because the visual goal or
+  dominant meaning carrier remains materially under-specified;
 - the request belongs to a separate project-specific visual owner.
 
 Explain the practical missing input in the user's language. Do not expose
@@ -253,6 +278,10 @@ repository-specific route labels or assume another skill exists.
 ## References
 
 - `references/universal-prompting.md` - portable prompt doctrine and assembly.
+- `references/art-direction-selection.md` - autonomous selection of one
+  task-fit artistic world without a style menu.
+- `references/medium-integrity.md` - production-process translation and repair
+  of generic execution.
 - `references/editing-references.md` - edits, references, identity, annotated
   regions, example transformations, and refinement.
 - `references/text-layout.md` - exact text, typography, hierarchy, and layouts.

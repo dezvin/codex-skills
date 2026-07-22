@@ -63,7 +63,7 @@ python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-s
 | [`document-consolidator`](skills/document-consolidator) | Безопасно сжимает и объединяет `.md` и `.txt`, сохраняя факты, решения, ссылки и незавершённую работу. | Глобально |
 | [`export-current-thread`](skills/export-current-thread) | По явной команде сохраняет хронологию сообщений, вызовов и полных текстовых результатов инструментов в локальный `.txt`. | Глобально |
 | [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) | Проводит полный или частичный JTBD-анализ по материалам, интервью и клиентским сигналам. | Глобально |
-| [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Создаёт переносимые визуальные промпты, но не генерирует изображения. | Глобально |
+| [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Сам выбирает подходящее художественное направление и превращает его в переносимый визуальный промпт с убедительной техникой исполнения. Изображения не генерирует. | Глобально |
 | [`manage-beget-site`](skills/manage-beget-site) | Исследует реальный live-контур, готовит бэкап и откат, изменяет сайт и проверяет результат на домене. | Глобально |
 
 Глобальный skill доступен в любых проектах. Проектный skill лежит в

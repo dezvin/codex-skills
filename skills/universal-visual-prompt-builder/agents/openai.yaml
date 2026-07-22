@@ -1,7 +1,7 @@
 interface:
   display_name: "Universal Image Prompt Builder"
-  short_description: "Build and repair portable image prompts"
-  default_prompt: "Use $universal-visual-prompt-builder to turn this visual brief into a production-ready image prompt."
+  short_description: "Choose art direction and build image prompts"
+  default_prompt: "Use $universal-visual-prompt-builder to choose a task-fit art direction and turn this visual brief into a medium-specific production-ready image prompt."
 
 policy:
   allow_implicit_invocation: true
