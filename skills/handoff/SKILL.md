@@ -65,13 +65,15 @@ If `python` is unavailable but `py` exists:
 py .\scripts\export_current_thread.py --temporary --json
 ```
 
-The script writes a temporary UTF-8 `.txt` and returns its exact `output_path`,
-size, estimated token count, and coverage warning. It preserves supported user
-and assistant messages, tool calls, full textual tool results, subagent
-messages, and selected technical events in chronological order. It
-deterministically excludes system/developer messages, hidden reasoning,
-unknown internal records, and explicitly typed binary content. It does not use
-a model to summarize, clean, select relevant fragments, or deduplicate text.
+The script writes a temporary compact UTF-8 `.txt` and returns its exact
+`output_path`, size, estimated token count, and coverage warning. It preserves
+supported user, assistant, and subagent messages plus a verifiable tool trace
+with Call IDs, known paths, status, result size and hash, and source-record
+references. It omits invocation bodies, executed code, file contents, and
+result bodies. It deterministically excludes system/developer messages, known
+Codex-injected user-content blocks, hidden reasoning, unknown internal
+records, and typed binary content. It does not use a model to summarize,
+clean, select relevant fragments, or deduplicate text.
 
 If the export can responsibly fit in the available context, read it as
 evidence for the already selected transfer scope. Do not add a preliminary
@@ -79,17 +81,35 @@ model pass for relevance selection. If it cannot fit, ask the user whether to
 narrow the scope, read the file in chunks with the additional context cost, or
 continue from visible context.
 
-After the handoff is complete, delete the exact temporary file with:
+Do not infer omitted tool details. Retrieve the supported records matching one
+`Call ID` only when they are material to the selected transfer scope, such as
+a failed operation, irreversible change, or check that cannot be responsibly
+established from current authoritative files:
+
+```powershell
+python .\scripts\export_current_thread.py `
+  --extract-call "<call_id>" `
+  --temporary `
+  --json
+```
+
+Check `pair_complete`. If it is `false`, use `missing_parts` to identify
+whether the call or result is absent and do not infer the missing side.
+
+Prefer current files, Git state, and other authoritative artifacts over stale
+historical tool output. After the handoff is complete, delete the compact
+export and every extracted fragment with:
 
 ```powershell
 python .\scripts\export_current_thread.py --cleanup "<output_path>" --json
 ```
 
-Do not copy the export into `.handoffs`, attach it to the continuation prompt,
-or present it as a source for the next agent. If cleanup fails, report the
-exact remaining path. The export can still omit attachments, inspected file
-contents, or unsupported future record types. Inspect important current
-artifacts directly when feasible.
+Do not copy the export or extracted payloads into `.handoffs`, attach them to
+the continuation prompt, or present them as sources for the next agent. If
+cleanup fails, report the exact remaining path. The compact trace can identify
+only explicit or literally mentioned paths from arbitrary code; it must label
+that coverage as partial or unknown. Inspect important current artifacts
+directly when feasible.
 
 Do not run this Codex script in ChatGPT, Claude, Gemini, or another environment
 unless that environment's compatible history mechanism has been implemented

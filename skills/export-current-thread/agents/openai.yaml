@@ -1,7 +1,9 @@
 interface:
   display_name: "Export current thread"
-  short_description: "Save current Codex thread as txt"
-  default_prompt: "Use $export-current-thread to save this Codex thread as a txt file."
+  short_description: "Компактно сохранить текущую ветку Codex"
+  default_prompt: >-
+    Use $export-current-thread to save a compact readable export of this Codex
+    thread with messages and a verifiable tool trace.
 
 policy:
   allow_implicit_invocation: false
