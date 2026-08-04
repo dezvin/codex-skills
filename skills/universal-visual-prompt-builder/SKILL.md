@@ -1,6 +1,6 @@
 ---
 name: universal-visual-prompt-builder
-description: "Use this skill for standalone image-prompt creation, refactoring, model/style/format adaptation, image editing, reference-based prompting, weak-result repair, prompt sets, and controlled variants from a brief, idea, image, or existing prompt. Selects a task-fit art direction when needed and translates it into medium-specific production controls. Produces prompt text but does not generate images. Do not use when a separate project-specific visual workflow owns the request or when the primary deliverable is broader content rather than an image prompt."
+description: "Use this skill for standalone image-prompt creation, refactoring, model/style/format adaptation, transparent-background and isolated-asset prompting, image editing, reference-based prompting, weak-result repair, prompt sets, and controlled variants from a brief, idea, image, or existing prompt. Selects a task-fit art direction when needed and translates it into medium-specific production controls. Produces prompt text but does not generate images. Do not use when a separate project-specific visual workflow owns the request or when the primary deliverable is broader content rather than an image prompt."
 ---
 # Universal Visual Prompt Builder
 
@@ -99,6 +99,9 @@ Do not disguise a missing sequence decision as visual variation.
    - success criterion;
    - exact text;
    - format and ratio;
+   - target generation surface when capability support matters;
+   - background mode and subject boundary;
+   - placement context when it should affect contrast but not be rendered;
    - reference roles and non-transfer boundaries;
    - special risks.
 3. Read `references/universal-prompting.md` for any substantive build.
@@ -126,6 +129,7 @@ Do not disguise a missing sequence decision as visual variation.
    - a per-item structure for a set or sequence.
 10. Build from the task outward:
    - subject, function, or edit operation;
+   - background and output contract when transparency or later placement matters;
    - action, state, scene, or structure;
    - composition and attention hierarchy;
    - exact text and layout;
@@ -165,6 +169,10 @@ model-dependent details after verification.
   storyboards, campaigns, controlled variants, continuity, or anti-repetition.
 - Read `references/format-ratio.md` when ratio, orientation, crop, carrier
   format, or platform shape materially affects the result.
+- Read `references/transparent-background.md` when the user requests a
+  transparent background, isolated asset, transparent composition, preserved
+  transparent regions, or an image intended for later placement over another
+  design.
 - Read `references/realism-camera-materials.md` when realism, camera, light,
   materials, portraits, products, or believable environments matter.
 - Read `references/troubleshooting.md` after a weak result, named failure mode,
@@ -234,6 +242,12 @@ Before returning a prompt, confirm:
 - edit tasks state both the change and the protected remainder;
 - style supports the task instead of replacing it;
 - format and ratio support the composition and reading path;
+- transparent-background tasks define the subject boundary and keep unused
+  space and intentional gaps transparent;
+- placement colors influence foreground contrast without becoming rendered
+  background;
+- shadows and requested edge effects remain subject-attached instead of
+  forming a ground plane or surrounding background;
 - exact colors and gradients are bound to named objects, parts, or zones;
 - variants or adjacent items differ on meaningful allowed dimensions;
 - declared series anchors remain stable while item-level visual decisions vary;
@@ -266,7 +280,8 @@ Stop and ask for input when:
 - recognizable identity is required but no usable reference exists;
 - annotated regions are not identifiable;
 - constraints are mutually incompatible in one image;
-- the requested model must support a capability that has not been established;
+- the requested surface or model must support a required capability that is
+  unsupported or cannot be established responsibly;
 - a prompt set lacks the item-level goals needed to distinguish its members;
 - a responsible direction cannot be selected because the visual goal or
   dominant meaning carrier remains materially under-specified;
@@ -287,6 +302,8 @@ repository-specific route labels or assume another skill exists.
 - `references/text-layout.md` - exact text, typography, hierarchy, and layouts.
 - `references/series-and-sets.md` - prompt sets, continuity, and variation.
 - `references/format-ratio.md` - ratio, orientation, crop, and extreme formats.
+- `references/transparent-background.md` - transparent assets, subject
+  boundaries, placement context, surface differences, and transparency repair.
 - `references/realism-camera-materials.md` - realism, camera, light, materials.
 - `references/troubleshooting.md` - diagnosis and targeted repair.
 - `references/patterns.md` - low-priority control and repair patterns.
