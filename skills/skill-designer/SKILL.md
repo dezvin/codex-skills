@@ -1,9 +1,9 @@
 ---
-name: skill-authoring-method
+name: skill-designer
 description: Analyze, review, and design potential or existing Codex skills without editing their files; prepare an implementation-ready skill project when implementation is intended. Use when the user asks whether an activity should become a skill, wants to think through or plan a skill, compare or review skill designs, diagnose poor behavior or triggering, check a specific skill, or improve, redesign, fix, update, or create a skill whose purpose, behavior, boundaries, architecture, or resources are not settled — even if they ask for the finished skill rather than a "skill project." Do not use when the only remaining work is physical implementation of an approved project or exact settled change, installation, publication, generic Codex documentation, or ordinary skill use.
 ---
 
-# Skill Authoring Method
+# Skill Designer
 
 Analyze, review, and design Codex skills as evolving Skill Projects. Produce a
 bounded Project Delta or a Full Skill Project according to the user's intended

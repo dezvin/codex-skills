@@ -1,7 +1,0 @@
-interface:
-  display_name: "Skill Authoring Method"
-  short_description: "Analyze and design Codex skills before implementation"
-  default_prompt: "Use $skill-authoring-method to analyze or design a Codex skill as one evolving project and return a project delta or implementation-ready project without editing its files."
-
-policy:
-  allow_implicit_invocation: true
