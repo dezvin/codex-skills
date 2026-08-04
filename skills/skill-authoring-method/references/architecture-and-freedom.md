@@ -93,7 +93,13 @@ low-freedom write operation with high-freedom analysis.
 
 ## Resource Decisions
 
-Plan only resources that provide recurring runtime value:
+For each representative task, walk through execution from scratch. Identify
+which knowledge would otherwise be rediscovered, which deterministic code would
+be rewritten, and which output material would be recreated. Plan only resources
+that remove that recurring work or provide required reliability; do not add a
+resource merely because similar skills usually contain one.
+
+Use the resulting evidence to place recurring runtime value:
 
 - Keep essential routing, order, and critical rules in `SKILL.md`.
 - Put detailed methods, domain knowledge, schemas, and variants in
@@ -114,6 +120,7 @@ Before accepting an architecture, verify:
 - dependencies are ordered rather than implied;
 - the design does not force a task into the five starting patterns;
 - freedom decreases where consequences increase;
+- every resource traces to a representative runtime need;
 - scripts are justified by determinism or repeated code;
 - references are loaded only where their knowledge is needed;
 - the chosen surface, not just the skill structure, is correct.
