@@ -112,7 +112,10 @@ Useful axes of variation:
 - process stage;
 - relationship between text and image.
 
-Adjacent frames or cards should differ on at least two or three axes unless template repetition is explicitly requested.
+Adjacent frames or cards should be meaningfully distinguishable unless
+template repetition is explicitly requested. Change whichever unlocked
+dimensions make the item-level difference visible; do not judge variation by
+counting changed axes.
 
 ## 6. Per-Frame Or Per-Card Archetype
 

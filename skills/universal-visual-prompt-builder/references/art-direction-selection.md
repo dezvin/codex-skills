@@ -111,9 +111,9 @@ controls:
 - typography or text-image relationship when relevant;
 - intentional irregularity or precision.
 
-Use one dominant source by default. Add a secondary influence only when it owns
-one explicit function and does not compete with the dominant base. Do not stack
-names as decorative keywords.
+Keep a clearly dominant source when named influences are used. Add other
+influences only when each owns an explicit function and does not compete with
+the dominant base. Do not stack names as decorative keywords.
 
 ## Failure Checks
 

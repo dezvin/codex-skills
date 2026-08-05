@@ -118,9 +118,10 @@ Environments:
 - believable light interaction;
 - spatial depth.
 
-When environment carries meaning, choose only one to three useful anchors, such
-as time of day, weather, architectural type, cleanliness or wear level, spatial
-density, object-placement logic, or plausible light source. Do not add the
+When environment carries meaning, include only the anchors needed to establish
+place and plausibility, such as time of day, weather, architectural type,
+cleanliness or wear level, spatial density, object-placement logic, or a
+plausible light source. Every anchor must stabilize the result; do not add the
 whole list by habit.
 
 ## 6. Shot, Framing, And Lens
@@ -237,7 +238,7 @@ Use grading as polish, not a replacement for lighting and material logic.
 
 ## 11. Realism Anchors
 
-Use one realism anchor when it stabilizes the image.
+Use a concise realism anchor when it stabilizes the image.
 
 Examples:
 

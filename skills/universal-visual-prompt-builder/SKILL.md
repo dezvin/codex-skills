@@ -117,37 +117,13 @@ Do not disguise a missing sequence decision as visual variation.
    or narrow correction.
 8. Translate the selected direction into the smallest useful set of
    medium-specific production controls under `references/medium-integrity.md`.
-9. Choose the simplest sufficient architecture:
-   - compact natural language for one dominant visual idea;
-   - a structured brief for strict layout, several objects, references, or
-     interacting constraints;
-   - JSON or pseudo-JSON only when the user asks for it or when strict zoning,
-     repeatability, or automation materially benefits;
-   - a reasoning-oriented instruction for transformations, rearrangements,
-     comparisons, process visuals, or educational diagrams;
-   - a controlled edit instruction for preservation-heavy work;
-   - a per-item structure for a set or sequence.
-10. Build from the task outward:
-   - subject, function, or edit operation;
-   - background and output contract when transparency or later placement matters;
-   - action, state, scene, or structure;
-   - composition and attention hierarchy;
-   - exact text and layout;
-   - selected task-derived art direction;
-   - medium-specific production process and craft controls;
-   - format and crop constraints;
-   - reference and preservation rules;
-   - useful camera, light, material, or medium details;
-   - hard constraints and targeted exclusions.
-11. Run the readiness, medium-integrity, and anti-drift checks below.
-12. Return the result using one of the output modes below.
+9. Use `references/universal-prompting.md` to choose the simplest sufficient
+   prompt architecture and assemble the prompt. Apply each additional
+   reference at the point where its specialized control matters.
+10. Run the readiness and applicable specialized checks below.
+11. Return the result using one of the output modes below.
 
 Do not output the normalized working layer unless the user asks for analysis.
-
-For every substantive build, use `GPT Image 2` and `Nano Banana 2` together as
-one active prompt-building baseline. Neither model is the default or fallback.
-If the user names a target model, preserve that choice and adapt only the
-model-dependent details after verification.
 
 ## Conditional References
 
@@ -192,7 +168,7 @@ Use when the task is not build-ready.
 Return:
 
 1. one short explanation of the practical gap in the user's language;
-2. one to four short questions that are genuinely required;
+2. the smallest sufficient set of short questions that are genuinely required;
 3. optionally, one short recommendation about references or workflow.
 
 Stop after the clarification. Do not include a speculative prompt.
@@ -203,7 +179,7 @@ Use when the task is build-ready.
 
 Return in this order:
 
-1. `Анализ и стратегия` - one to three concise sentences in the user's
+1. `Анализ и стратегия` - a concise practical explanation in the user's
    language naming the request type, chosen architecture, critical controls,
    preservation priorities, success criterion, or multi-pass need. State the
    practical conclusion, not hidden reasoning or the full normalized layer.
@@ -229,47 +205,19 @@ instead of the Mode B wrapper.
 
 Before returning a prompt, confirm:
 
-- the visual goal and success criterion are preserved;
-- the selected art direction is derived from the task rather than from the
-  deliverable label or a habitual style bundle;
-- the medium is expressed through a coherent production process instead of
-  interchangeable digital-render language;
-- subject, action, and strongest constraint appear early;
-- exact text is unchanged and protected by layout when necessary;
-- important attributes are bound to named people, objects, regions, or zones;
-- each reference has a clear target, control dimension, priority, and
-  non-transfer boundary when needed;
-- edit tasks state both the change and the protected remainder;
-- style supports the task instead of replacing it;
-- format and ratio support the composition and reading path;
-- transparent-background tasks define the subject boundary and keep unused
-  space and intentional gaps transparent;
-- placement colors influence foreground contrast without becoming rendered
-  background;
-- shadows and requested edge effects remain subject-attached instead of
-  forming a ground plane or surrounding background;
-- exact colors and gradients are bound to named objects, parts, or zones;
-- variants or adjacent items differ on meaningful allowed dimensions;
-- declared series anchors remain stable while item-level visual decisions vary;
-- camera, realism, lighting, and material details improve control;
+- the visual goal, success criterion, exact inputs, and locked constraints are
+  preserved;
+- the prompt architecture supports the actual task, format, and interactions;
+- every applicable art-direction, medium, text, reference, format,
+  transparency, realism, and series check has passed;
 - no internal paths, hidden project state, private mechanics, or service labels
   appear in the prompt;
 - the prompt contains no unused alternatives or decorative keyword soup.
 
-Default drift is present when the prompt falls into a generic scene, object
-bundle, style stack, palette, layout skeleton, or rendering recipe not derived
-from the task.
-
-Repair once:
-
-1. restate the visual goal;
-2. identify the task-derived visual mechanism;
-3. remove generic filler;
-4. strengthen composition, layout, edit, or reference boundaries;
-5. retain only details that improve the expected result.
-
-If one focused repair cannot resolve the drift, ask for the missing visual
-decision instead of pretending the prompt is ready.
+If readiness suggests default drift, generic execution, or another unresolved
+failure mode, read `references/troubleshooting.md` and use its definition and
+repair route. If that bounded route cannot resolve the problem, ask for the
+missing visual decision instead of pretending the prompt is ready.
 
 ## Stop Rules
 
@@ -289,21 +237,3 @@ Stop and ask for input when:
 
 Explain the practical missing input in the user's language. Do not expose
 repository-specific route labels or assume another skill exists.
-
-## References
-
-- `references/universal-prompting.md` - portable prompt doctrine and assembly.
-- `references/art-direction-selection.md` - autonomous selection of one
-  task-fit artistic world without a style menu.
-- `references/medium-integrity.md` - production-process translation and repair
-  of generic execution.
-- `references/editing-references.md` - edits, references, identity, annotated
-  regions, example transformations, and refinement.
-- `references/text-layout.md` - exact text, typography, hierarchy, and layouts.
-- `references/series-and-sets.md` - prompt sets, continuity, and variation.
-- `references/format-ratio.md` - ratio, orientation, crop, and extreme formats.
-- `references/transparent-background.md` - transparent assets, subject
-  boundaries, placement context, surface differences, and transparency repair.
-- `references/realism-camera-materials.md` - realism, camera, light, materials.
-- `references/troubleshooting.md` - diagnosis and targeted repair.
-- `references/patterns.md` - low-priority control and repair patterns.

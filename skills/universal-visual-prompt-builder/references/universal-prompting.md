@@ -10,7 +10,7 @@
 6. Task Interpretation
 7. Subject Binding
 8. Dominant Visual Idea
-9. Build Order
+9. Prompt Architecture And Build Order
 10. Constraint Discipline
 11. Style Control
 12. Spatial Logic
@@ -128,31 +128,16 @@ If the triad is unclear, the prompt will usually drift.
 
 ## 6. Task Interpretation
 
-Identify what kind of visual problem this is before writing.
+Use the working mode selected in `SKILL.md`. Translate it into the visual
+function the prompt must perform:
 
-Common functional categories:
+- what the image or edit must accomplish;
+- what must lead attention;
+- which relationships, changes, or preserved properties carry the result;
+- how the intended use affects structure, layout, or polish.
 
-- scene generation;
-- portrait or subject rendering;
-- product visualization;
-- poster, title card, thumbnail, or cover;
-- slide or presentation visual;
-- infographic, diagram, or UI-like visual;
-- series, sequence, storyboard, or set;
-- image edit;
-- result refinement;
-- prompt refactor;
-- prompt adaptation.
-
-If the deliverable type changes structure, layout, or polish expectations, name it explicitly in the prompt.
-
-Examples:
-
-- "Create a poster..."
-- "Create a presentation slide..."
-- "Create a vertical story visual..."
-- "Create an infographic..."
-- "Create a realistic UI mockup..."
+Name the deliverable type in the prompt only when it changes those decisions.
+Do not let a familiar deliverable label choose the visual treatment by habit.
 
 ## 7. Subject Binding
 
@@ -181,23 +166,39 @@ Avoid pronouns when several subjects, objects, or zones matter.
 
 ## 8. Dominant Visual Idea
 
-Most prompts should have one dominant visual idea.
+Give the image a legible attention hierarchy. Use a single dominant visual idea
+when one meaning carrier truly leads the task; do not force every task into one
+subject, object, or focal device. Complex visuals may contain several
+coordinated priorities when their relationship is part of the meaning.
 
-Default budget:
+Include a subject, supporting element, or detail only when it carries meaning,
+establishes a necessary relationship, preserves a fact or constraint, or makes
+the intended result clearer. Determine visual complexity from the task. Do not
+target a default element count, minimum, maximum, or range.
 
-- one primary subject or focal idea;
-- two to four secondary elements if truly needed;
-- all other detail as supporting context.
-
-This does not mean every visual must be minimal. It means the prompt should not treat five priorities as equally central unless the task requires that complexity.
-
-For a prompt set, keep one dominant visual idea per item, but do not reuse the
+For a prompt set, give each item a clear visual decision, but do not reuse the
 same dominant idea, scene skeleton, or visual mechanism across the whole set by
 default.
 
-## 9. Build Order
+## 9. Prompt Architecture And Build Order
 
-Default build order:
+Choose the simplest architecture that can control the actual interactions:
+
+- compact natural language when the goal, hierarchy, and constraints remain
+  clear without explicit zoning;
+- a structured brief for strict layout, several objects, references, or
+  interacting constraints;
+- JSON or pseudo-JSON only when the user asks for it or strict zoning,
+  repeatability, or automation materially benefits;
+- a reasoning-oriented instruction for transformations, rearrangements,
+  comparisons, process visuals, or educational diagrams;
+- a controlled edit instruction for preservation-heavy work;
+- a per-item structure for a set or sequence.
+
+Do not choose a shorter architecture merely to reduce effort or a more
+structured architecture merely to appear rigorous.
+
+After choosing the architecture, build in this order:
 
 1. subject or deliverable type;
 2. action, state, or task function;

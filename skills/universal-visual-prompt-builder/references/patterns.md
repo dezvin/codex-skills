@@ -25,7 +25,9 @@ Read this file only after:
 - main prompt architecture is selected;
 - a small control pattern or repair wording would materially help.
 
-Use at most one pattern by default. Never use this file to choose the production approach.
+Use only patterns that solve a named control problem in the current prompt.
+Do not combine patterns by habit, and never use this file to choose the
+production approach.
 
 ## 3. Guardrails
 
@@ -50,12 +52,14 @@ Use when prompt needs a strong anchor.
 Start with the main subject and its defining action or state before adding environment, style, and secondary detail.
 ```
 
-`MTF-002 One dominant visual idea`
+`MTF-002 Legible visual hierarchy`
 
 Use when the scene risks overload.
 
 ```text
-Use one primary subject or one dominant visual idea, then demote supporting detail.
+Make the leading visual idea immediately legible. Keep supporting detail only
+when it contributes to the task, and allow coordinated focal elements when
+their relationship carries the meaning.
 ```
 
 `MTF-003 Bound attribute ownership`
@@ -99,7 +103,9 @@ Create a poster with [headline] as the dominant text in [zone], [hero visual] as
 `PAT-003 Slide cover`
 
 ```text
-Create a clean presentation slide cover with a clear title zone, one restrained supporting subtitle, and one dominant visual structure. Use presentation-friendly spacing, stable hierarchy, and generous negative space.
+Create a clean presentation slide cover with a clear title zone, restrained
+supporting text when present, and a legible dominant visual structure. Use
+presentation-friendly spacing, stable hierarchy, and generous negative space.
 ```
 
 `PAT-004 Infographic`
