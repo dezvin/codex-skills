@@ -42,6 +42,11 @@ files.
   analysis, review, or design. It defines evidence bases, decision provenance,
   source and authority boundaries, authoring rules, verification design, and
   the boundary between project material and runtime instructions.
+- **Read the entire `references/source-derived-skills.md`** when the projected
+  skill transforms source material into reusable runtime knowledge or
+  instructions, regardless of the material's format, carrier, storage,
+  transport, or origin. Skip it when external material serves only as design
+  evidence or no runtime content is derived from it.
 - **Read the entire `references/architecture-and-freedom.md`** when selecting
   or reviewing the Codex surface, architecture, degrees of freedom, or bundled
   resources. Skip it only when an approved input fixes all of those decisions
