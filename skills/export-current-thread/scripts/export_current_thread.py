@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import os
@@ -76,34 +75,25 @@ REFERENCE_KEYS = (
     "size",
     "url",
 )
-PATH_KEYS = {
-    "cwd",
-    "directory",
+READ_PATH_KEYS = {
     "file",
     "file_path",
     "files",
-    "folder",
-    "output_dir",
-    "output_path",
     "path",
     "paths",
-    "root",
     "uri",
-    "url",
-    "workdir",
-    "workspace",
-    "workspace_root",
-    "workspace_roots",
 }
-PATCH_PATH_RE = re.compile(
-    r"^\*\*\* (?:Add|Update|Delete) File: (?P<path>.+?)\s*$",
-    re.MULTILINE,
-)
 WINDOWS_PATH_RE = re.compile(
     r"(?i)(?<![A-Za-z0-9_])([A-Z]:\\[^\"'`|<>\r\n;]+)"
 )
 FILE_URI_RE = re.compile(r"(?i)\b(file:///[^\s\"'`|<>]+)")
-NESTED_TOOL_RE = re.compile(r"\btools\.([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+DIRECT_FILE_READ_TOOLS = {
+    "open_file",
+    "read_file",
+    "read_text_file",
+    "view_image",
+}
+SHELL_TOOLS = {"exec_command", "shell_command"}
 INJECTED_USER_PART_PREFIXES = (
     "<recommended_plugins>",
     "# AGENTS.md instructions",
@@ -245,10 +235,6 @@ def render_value(value: Any) -> tuple[str, int]:
     return json.dumps(cleaned, ensure_ascii=False, indent=2, sort_keys=True), removed
 
 
-def content_digest(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
 def parse_json_string(value: str) -> Any | None:
     stripped = value.strip()
     if not stripped.startswith(("{", "[")):
@@ -260,32 +246,44 @@ def parse_json_string(value: str) -> Any | None:
 
 
 def normalize_path_literal(value: str) -> str:
-    return value.strip().strip("\"'").replace("\\\\", "\\")
+    normalized = value.strip().strip("\"'").replace("\\\\", "\\")
+    if os.name == "nt" and not normalized.lower().startswith("file:///"):
+        normalized = normalized.replace("/", "\\")
+    return normalized[4:] if normalized.startswith("\\\\?\\") else normalized
 
 
-def structured_targets(value: Any, parent_key: str = "") -> set[str]:
-    targets: set[str] = set()
+def tool_argument_value(kind: str, payload: dict[str, Any]) -> Any:
+    key = "input" if kind == "custom_tool_call" else "arguments"
+    raw = payload.get(key, "")
+    if isinstance(raw, str):
+        parsed = parse_json_string(raw)
+        return parsed if parsed is not None else raw
+    return raw
+
+
+def structured_read_paths(value: Any, parent_key: str = "") -> list[str]:
+    paths: list[str] = []
     if isinstance(value, dict):
         for key, child in value.items():
             lowered = str(key).lower()
-            if lowered in PATH_KEYS:
+            if lowered in READ_PATH_KEYS:
                 if isinstance(child, str) and child.strip():
-                    targets.add(normalize_path_literal(child))
+                    paths.append(normalize_path_literal(child))
                 elif isinstance(child, list):
                     for item in child:
                         if isinstance(item, str) and item.strip():
-                            targets.add(normalize_path_literal(item))
-            targets.update(structured_targets(child, lowered))
-        return targets
+                            paths.append(normalize_path_literal(item))
+            paths.extend(structured_read_paths(child, lowered))
+        return paths
     if isinstance(value, list):
         for child in value:
-            targets.update(structured_targets(child, parent_key))
-        return targets
+            paths.extend(structured_read_paths(child, parent_key))
+        return paths
     if isinstance(value, str):
         parsed = parse_json_string(value)
         if parsed is not None:
-            targets.update(structured_targets(parsed, parent_key))
-    return targets
+            paths.extend(structured_read_paths(parsed, parent_key))
+    return paths
 
 
 def literal_path_mentions(text: str) -> set[str]:
@@ -295,16 +293,240 @@ def literal_path_mentions(text: str) -> set[str]:
     return {path.rstrip(" ,)") for path in paths if path}
 
 
-def patch_targets(text: str) -> set[str]:
-    return {
-        normalize_path_literal(match.group("path"))
-        for match in PATCH_PATH_RE.finditer(text)
-        if match.group("path").strip()
-    }
+def quoted_literal_at(text: str, start: int) -> tuple[str | None, int]:
+    if start >= len(text) or text[start] not in {"'", '"'}:
+        return None, start
+    quote = text[start]
+    escaped = False
+    for index in range(start + 1, len(text)):
+        char = text[index]
+        if char == quote and not escaped:
+            raw = text[start + 1 : index]
+            decoded: list[str] = []
+            position = 0
+            escapes = {"n": "\n", "r": "\r", "t": "\t", "\\": "\\", "'": "'", '"': '"'}
+            while position < len(raw):
+                if raw[position] == "\\" and position + 1 < len(raw):
+                    next_char = raw[position + 1]
+                    if next_char in escapes:
+                        decoded.append(escapes[next_char])
+                        position += 2
+                        continue
+                decoded.append(raw[position])
+                position += 1
+            return "".join(decoded), index + 1
+        escaped = char == "\\" and not escaped
+        if char != "\\":
+            escaped = False
+    return None, start
 
 
-def nested_tool_names(text: str) -> list[str]:
-    return list(dict.fromkeys(match.group(1) for match in NESTED_TOOL_RE.finditer(text)))
+def named_string_literals(text: str, key: str) -> list[str]:
+    values: list[str] = []
+    pattern = re.compile(rf"\b{re.escape(key)}\s*:\s*")
+    for match in pattern.finditer(text):
+        value, _ = quoted_literal_at(text, match.end())
+        if value is not None:
+            values.append(value)
+    return values
+
+
+def powershell_literal_variables(command: str) -> dict[str, str]:
+    variables: dict[str, str] = {}
+    literal_pattern = re.compile(
+        r"\$(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<quote>['\"])(?P<value>.*?)(?P=quote)",
+        re.DOTALL,
+    )
+    for match in literal_pattern.finditer(command):
+        value = match.group("value")
+        if match.group("quote") == "'":
+            value = value.replace("''", "'")
+        variables[match.group("name").casefold()] = normalize_path_literal(value)
+
+    join_pattern = re.compile(
+        r"\$(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*Join-Path\s+"
+        r"(?P<base>\$[A-Za-z_][A-Za-z0-9_]*|['\"][^'\"]+['\"])\s+"
+        r"(?P<child>['\"][^'\"]+['\"])",
+        re.IGNORECASE,
+    )
+    for match in join_pattern.finditer(command):
+        base = resolve_powershell_path(match.group("base"), variables)
+        child = resolve_powershell_path(match.group("child"), variables)
+        if base and child:
+            variables[match.group("name").casefold()] = str(Path(base) / child)
+    return variables
+
+
+def resolve_powershell_path(expression: str, variables: dict[str, str]) -> str | None:
+    value = expression.strip().rstrip(",")
+    if value.startswith("(") and value.endswith(")"):
+        value = value[1:-1].strip()
+    else:
+        value = value.rstrip(")")
+    join_match = re.fullmatch(
+        r"Join-Path\s+(?P<base>\$[A-Za-z_][A-Za-z0-9_]*|['\"][^'\"]+['\"])\s+"
+        r"(?P<child>\$[A-Za-z_][A-Za-z0-9_]*|['\"][^'\"]+['\"])",
+        value,
+        re.IGNORECASE,
+    )
+    if join_match:
+        base = resolve_powershell_path(join_match.group("base"), variables)
+        child = resolve_powershell_path(join_match.group("child"), variables)
+        return str(Path(base) / child) if base and child else None
+    if re.fullmatch(r"\$[A-Za-z_][A-Za-z0-9_]*", value):
+        resolved = variables.get(value[1:].casefold())
+        if resolved and resolved.casefold().startswith("$env:"):
+            return resolve_powershell_path(resolved, {})
+        return resolved
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        value = normalize_path_literal(value[1:-1])
+    env_match = re.match(r"(?i)^\$env:(?P<name>[A-Za-z_][A-Za-z0-9_]*)(?P<rest>.*)$", value)
+    if env_match:
+        base = os.environ.get(env_match.group("name"))
+        return normalize_path_literal(base + env_match.group("rest")) if base else None
+    if not value:
+        return None
+    return normalize_path_literal(value)
+
+
+def argument_after_flag(text: str, flag: str) -> str | None:
+    match = re.search(rf"(?i)(?<!\w)-{re.escape(flag)}\b", text)
+    if not match:
+        return None
+    index = match.end()
+    while index < len(text) and text[index].isspace():
+        index += 1
+    if index >= len(text):
+        return None
+    if text[index] in {"'", '"'}:
+        _, end = quoted_literal_at(text, index)
+        return text[index:end] if end > index else None
+    if text[index] == "(":
+        depth = 0
+        quote: str | None = None
+        escaped = False
+        for end in range(index, len(text)):
+            char = text[end]
+            if quote:
+                if char == quote and not escaped:
+                    quote = None
+                escaped = char == "\\" and not escaped
+                if char != "\\":
+                    escaped = False
+                continue
+            if char in {"'", '"'}:
+                quote = char
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    return text[index : end + 1]
+        return None
+    end = index
+    while end < len(text) and not text[end].isspace() and text[end] not in ";|,":
+        end += 1
+    return text[index:end] or None
+
+
+def existing_file_path(value: str, workdir: str | None) -> bool:
+    if value.lower().startswith("file:///"):
+        return True
+    candidate = Path(value).expanduser()
+    if not candidate.is_absolute() and workdir:
+        candidate = Path(workdir).expanduser() / candidate
+    try:
+        return candidate.is_file()
+    except OSError:
+        return False
+
+
+def shell_read_paths(command: str, workdir: str | None) -> list[str]:
+    variables = powershell_literal_variables(command)
+    paths: list[str] = []
+    content_pattern = re.compile(
+        r"(?is)\b(?:Get-Content|Select-String|gc)\b(?P<args>[^;\r\n|]*)"
+    )
+    for match in content_pattern.finditer(command):
+        args = match.group("args")
+        expression = argument_after_flag(args, "LiteralPath") or argument_after_flag(args, "Path")
+        if expression:
+            path = resolve_powershell_path(expression, variables)
+            if path:
+                paths.append(path)
+
+    positional_pattern = re.compile(r"(?im)(?:^|[;|]\s*)(?:type|more)\s+(?P<arg>[^\s;|]+)")
+    for match in positional_pattern.finditer(command):
+        path = resolve_powershell_path(match.group("arg"), variables)
+        if path:
+            paths.append(path)
+
+    rg_pattern = re.compile(r"(?im)(?:^|[;|]\s*)rg\b(?P<args>[^;\r\n|]*)")
+    for match in rg_pattern.finditer(command):
+        args = match.group("args")
+        if re.search(r"(?i)(?:^|\s)--files(?:\s|$)", args):
+            continue
+        candidates = list(literal_path_mentions(args))
+        for variable in re.findall(r"\$[A-Za-z_][A-Za-z0-9_]*", args):
+            resolved = resolve_powershell_path(variable, variables)
+            if resolved:
+                candidates.append(resolved)
+        for quote_match in re.finditer(r"(['\"])(?P<value>.*?)(?:\1)", args):
+            candidates.append(normalize_path_literal(quote_match.group("value")))
+        paths.extend(path for path in candidates if existing_file_path(path, workdir))
+
+    return paths
+
+
+def nested_direct_read_paths(body: str) -> list[str]:
+    paths: list[str] = []
+    tool_pattern = re.compile(
+        rf"\btools\.(?:{'|'.join(sorted(DIRECT_FILE_READ_TOOLS))})\s*\(",
+        re.IGNORECASE,
+    )
+    for match in tool_pattern.finditer(body):
+        end = body.find(");", match.end())
+        segment = body[match.end() : end if end >= 0 else len(body)]
+        for key in READ_PATH_KEYS:
+            paths.extend(named_string_literals(segment, key))
+    return paths
+
+
+def file_read_paths(kind: str, payload: dict[str, Any], body: str) -> list[str]:
+    tool_name = str(payload.get("name") or "").casefold()
+    base_tool_name = tool_name.rsplit("__", 1)[-1].rsplit(".", 1)[-1]
+    raw_value = tool_argument_value(kind, payload)
+    paths: list[str] = []
+    if base_tool_name in DIRECT_FILE_READ_TOOLS:
+        paths.extend(structured_read_paths(raw_value))
+
+    commands: list[str] = []
+    workdir = extract_workdir(raw_value)
+    if isinstance(raw_value, dict) and base_tool_name in SHELL_TOOLS:
+        command = raw_value.get("command")
+        if isinstance(command, str):
+            commands.append(command)
+    elif base_tool_name == "exec":
+        commands.extend(named_string_literals(body, "command"))
+        nested_workdirs = named_string_literals(body, "workdir")
+        if nested_workdirs:
+            workdir = normalize_path_literal(nested_workdirs[0])
+        paths.extend(nested_direct_read_paths(body))
+
+    for command in commands:
+        paths.extend(shell_read_paths(command, workdir))
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        normalized = normalize_path_literal(path)
+        if any(char in normalized for char in "*?["):
+            continue
+        key = normalized.casefold()
+        if normalized and key not in seen:
+            seen.add(key)
+            unique.append(normalized)
+    return unique
 
 
 def extract_workdir(value: Any) -> str | None:
@@ -339,33 +561,6 @@ def extract_workdir(value: Any) -> str | None:
         re.DOTALL,
     )
     return normalize_path_literal(match.group("value")) if match else None
-
-
-def tool_target_metadata(kind: str, payload: dict[str, Any], body: str) -> dict[str, Any]:
-    tool_name = str(payload.get("name") or "")
-    exact: set[str] = set()
-    mentioned: set[str] = set()
-    coverage = "unknown"
-
-    argument_key = "input" if kind == "custom_tool_call" else "arguments"
-    raw_value = payload.get(argument_key, "")
-    exact.update(structured_targets(raw_value))
-    mentioned.update(literal_path_mentions(body))
-
-    if tool_name == "apply_patch":
-        exact.update(patch_targets(body))
-        coverage = "exact" if exact else "unknown"
-    elif exact or mentioned:
-        coverage = "partial"
-
-    mentioned.difference_update(exact)
-    return {
-        "exact_targets": sorted(exact, key=str.casefold),
-        "mentioned_paths": sorted(mentioned, key=str.casefold),
-        "target_coverage": coverage,
-        "workdir": extract_workdir(raw_value),
-        "nested_tools": nested_tool_names(body),
-    }
 
 
 def text_fragments(value: Any) -> list[str]:
@@ -420,47 +615,43 @@ def parse_result_status(body: str) -> tuple[str, int | None]:
     return "recorded", None
 
 
-def compact_call_body(kind: str, payload: dict[str, Any], full_body: str, source_line: int | None) -> str:
-    metadata = tool_target_metadata(kind, payload, full_body)
-    lines: list[str] = []
-    if metadata["nested_tools"]:
-        lines.append(f"Underlying tools: {', '.join(metadata['nested_tools'])}")
-    if metadata["workdir"]:
-        lines.append(f"Working directory: {metadata['workdir']}")
-    if metadata["exact_targets"]:
-        lines.append("Exact targets:")
-        lines.extend(f"- {path}" for path in metadata["exact_targets"])
-    if metadata["mentioned_paths"]:
-        lines.append("Mentioned paths:")
-        lines.extend(f"- {path}" for path in metadata["mentioned_paths"])
-    lines.extend(
-        [
-            f"Target coverage: {metadata['target_coverage']}",
-            f"Invocation characters: {len(full_body)}",
-            f"Invocation SHA-256: {content_digest(full_body)}",
-        ]
-    )
-    if source_line is not None:
-        lines.append(f"Source record: {source_line}")
-    lines.append("Invocation content omitted from compact export.")
-    return "\n".join(lines)
+def confirmed_tool_results(records: list[dict[str, Any]]) -> dict[str, bool]:
+    confirmed: dict[str, bool] = {}
+    for record in records:
+        if record.get("type") != "response_item":
+            continue
+        payload = record.get("payload")
+        if not isinstance(payload, dict) or payload.get("type") not in {
+            "custom_tool_call_output",
+            "function_call_output",
+        }:
+            continue
+        call_id = str(payload.get("call_id") or "")
+        if not call_id:
+            continue
+        body, _ = render_value(payload.get("output", ""))
+        status, _ = parse_result_status(body)
+        if status != "failure":
+            confirmed[call_id] = True
+        else:
+            confirmed.setdefault(call_id, False)
+    return confirmed
 
 
-def compact_result_body(full_body: str, source_line: int | None) -> str:
-    status, exit_code = parse_result_status(full_body)
-    lines = [f"Result status: {status}"]
-    if exit_code is not None:
-        lines.append(f"Exit code: {exit_code}")
-    lines.extend(
-        [
-            f"Result characters: {len(full_body)}",
-            f"Result SHA-256: {content_digest(full_body)}",
-        ]
-    )
-    if source_line is not None:
-        lines.append(f"Source record: {source_line}")
-    lines.append("Result content omitted from compact export.")
-    return "\n".join(lines)
+def file_read_event(paths: list[str], timestamp: str) -> dict[str, Any]:
+    if len(paths) == 1:
+        label = "FILE READ"
+        body = paths[0]
+    else:
+        label = "FILES READ"
+        body = "\n".join(f"- {path}" for path in paths)
+    return {
+        "timestamp": timestamp,
+        "label": label,
+        "attrs": {},
+        "body": body,
+        "kind": "file_read_marker",
+    }
 
 
 def message_body(
@@ -528,7 +719,6 @@ def response_event(
         return None
 
     timestamp = str(record.get("timestamp") or "")
-    source_line = record.get("_source_line")
     attrs: dict[str, Any] = {}
     body = ""
     binary_count = 0
@@ -562,8 +752,6 @@ def response_event(
                 attrs[key] = payload[key]
         argument_key = "input" if kind == "custom_tool_call" else "arguments"
         body, binary_count = render_value(payload.get(argument_key, ""))
-        if not full:
-            body = compact_call_body(kind, payload, body, source_line)
     else:
         label = "TOOL RESULT"
         keys = ("id", "call_id") if full else ("call_id",)
@@ -571,8 +759,6 @@ def response_event(
             if payload.get(key) is not None:
                 attrs[key] = payload[key]
         body, binary_count = render_value(payload.get("output", ""))
-        if not full:
-            body = compact_result_body(body, source_line)
 
     if binary_count:
         excluded["binary_content_blocks"] += binary_count
@@ -607,7 +793,7 @@ def technical_event(record: dict[str, Any], *, full: bool) -> dict[str, Any] | N
     body = json.dumps(selected, ensure_ascii=False, indent=2, sort_keys=True) if selected else ""
     return {
         "timestamp": str(record.get("timestamp") or ""),
-        "label": f"TECHNICAL EVENT: {kind}",
+        "label": f"TECHNICAL EVENT: {kind}" if full else "CONTEXT COMPACTED",
         "attrs": {},
         "body": body,
         "dedupe_key": None,
@@ -620,6 +806,9 @@ def collect_events(
     *,
     full: bool,
 ) -> tuple[list[dict[str, Any]], Counter[str], Counter[str]]:
+    if not full:
+        return collect_transcript_events(records)
+
     events: list[dict[str, Any]] = []
     excluded: Counter[str] = Counter()
     included: Counter[str] = Counter()
@@ -649,6 +838,90 @@ def collect_events(
             seen.add(key)
         included[event["kind"]] += 1
         events.append(event)
+    return events, included, excluded
+
+
+def collect_transcript_events(
+    records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], Counter[str], Counter[str]]:
+    events: list[dict[str, Any]] = []
+    excluded: Counter[str] = Counter()
+    included: Counter[str] = Counter()
+    seen: set[tuple[str, str]] = set()
+    confirmed_results = confirmed_tool_results(records)
+    pending_paths: list[str] = []
+    pending_keys: set[str] = set()
+    pending_timestamp = ""
+
+    def flush_file_reads() -> None:
+        nonlocal pending_timestamp
+        if not pending_paths:
+            return
+        event = file_read_event(pending_paths.copy(), pending_timestamp)
+        events.append(event)
+        included[event["kind"]] += 1
+        pending_paths.clear()
+        pending_keys.clear()
+        pending_timestamp = ""
+
+    for record in records:
+        outer_type = record.get("type")
+        if outer_type == "response_item":
+            payload = record.get("payload")
+            if not isinstance(payload, dict):
+                excluded["malformed_response_item"] += 1
+                continue
+            kind = str(payload.get("type") or "")
+            if kind in {"custom_tool_call", "function_call"}:
+                call_id = str(payload.get("call_id") or "")
+                argument_key = "input" if kind == "custom_tool_call" else "arguments"
+                body, binary_count = render_value(payload.get(argument_key, ""))
+                if binary_count:
+                    excluded["binary_content_blocks"] += binary_count
+                paths = file_read_paths(kind, payload, body)
+                if paths and confirmed_results.get(call_id, False):
+                    if not pending_timestamp:
+                        pending_timestamp = str(record.get("timestamp") or "")
+                    for path in paths:
+                        key = path.casefold()
+                        if key not in pending_keys:
+                            pending_keys.add(key)
+                            pending_paths.append(path)
+                    included["confirmed_file_read_call"] += 1
+                elif paths:
+                    excluded["unconfirmed_file_read_call"] += 1
+                else:
+                    excluded["non_file_read_tool_call"] += 1
+                continue
+            if kind in {"custom_tool_call_output", "function_call_output"}:
+                excluded["tool_result"] += 1
+                continue
+            event = response_event(record, excluded, full=False)
+        elif outer_type == "event_msg":
+            event = technical_event(record, full=False)
+            if event is None:
+                payload = record.get("payload")
+                kind = payload.get("type") if isinstance(payload, dict) else "unknown"
+                excluded[f"event_msg:{kind}"] += 1
+        elif outer_type in {"session_meta", "turn_context"}:
+            continue
+        else:
+            excluded[f"record:{outer_type or 'unknown'}"] += 1
+            continue
+
+        if event is None:
+            continue
+        key = event.pop("dedupe_key")
+        if key is not None and key in seen:
+            excluded["structural_duplicates"] += 1
+            continue
+        if key is not None:
+            seen.add(key)
+        flush_file_reads()
+        included[event["kind"]] += 1
+        events.append(event)
+
+    flush_file_reads()
     return events, included, excluded
 
 
@@ -789,11 +1062,41 @@ def build_export_text(
     invalid_line_count: int,
     context: dict[str, Any],
     full: bool,
-    extractor_path: Path,
     extracted_call_id: str | None = None,
     pair_complete: bool | None = None,
     missing_parts: list[str] | None = None,
 ) -> str:
+    if not full:
+        lines = [
+            "Codex conversation recovery transcript",
+            f"Thread ID: {thread_id}",
+            f"Source: {rollout_path}",
+            f"Exported: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "Coverage: user, assistant, and subagent messages; context-compaction markers; "
+            "and confirmed file reads placed where they occurred.",
+            "Repeated chunk reads are collapsed only within the same interval between messages. "
+            "Other tool calls and all tool results are omitted.",
+            "System/developer messages, hidden reasoning, injected environment blocks, token telemetry, "
+            "unknown internal records, and typed binary content are excluded.",
+            "No model-based summarization, relevance filtering, or semantic rewriting was applied.",
+        ]
+        if invalid_line_count:
+            lines.append(f"Warning: unreadable JSONL lines skipped: {invalid_line_count}")
+        if context:
+            lines.extend(
+                [
+                    "Latest observable thread context:",
+                    json.dumps(context, ensure_ascii=False, indent=2, sort_keys=True),
+                ]
+            )
+        lines.append("")
+        for event in events:
+            lines.append(f"[{event['label']}]")
+            if event["body"]:
+                lines.append(event["body"])
+            lines.append("")
+        return "\n".join(lines)
+
     if extracted_call_id:
         title = "Codex extracted tool records"
         coverage = f"the supported tool records matching Call ID {extracted_call_id}."
@@ -802,12 +1105,6 @@ def build_export_text(
         coverage = (
             "user and assistant messages, supported tool calls and full textual tool results, "
             "subagent messages, and selected technical events from the verified local rollout."
-        )
-    else:
-        title = "Codex compact observable work export"
-        coverage = (
-            "user and assistant messages, compact tool traces, subagent messages, and context-compaction "
-            "markers from the verified local rollout."
         )
     lines = [
         title,
@@ -830,19 +1127,6 @@ def build_export_text(
             [
                 f"pair_complete: {str(pair_complete).lower()}",
                 f"missing_parts: {', '.join(missing_parts) if missing_parts else 'none'}",
-            ]
-        )
-    if not full:
-        lines.extend(
-            [
-                "Tool invocation bodies and result bodies are omitted from this compact export.",
-                "Do not infer omitted details. Use Call ID to retrieve the matching supported tool records when needed.",
-                f"Detail extractor: {extractor_path}",
-                "Retrieval command:",
-                f'python "{extractor_path}" --thread-id "{thread_id}" --extract-call "<call_id>" --temporary --json',
-                "After reading the extracted fragment, delete it with the script's --cleanup command.",
-                "If the source rollout is unavailable, inspect current authoritative files and project state. "
-                "If that is insufficient, request a full command-and-result export.",
             ]
         )
     if context:
@@ -940,7 +1224,6 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
         invalid_line_count=invalid_line_count,
         context=latest_turn_context(records, full=full),
         full=full,
-        extractor_path=Path(__file__).resolve(),
         extracted_call_id=extracted_call_id,
         pair_complete=pair_complete,
         missing_parts=missing_parts,
@@ -951,7 +1234,7 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
     result = {
         "ok": True,
         "temporary": bool(args.temporary),
-        "export_kind": "call_details" if extracted_call_id else ("full" if full else "compact"),
+        "export_kind": "call_details" if extracted_call_id else ("full" if full else "transcript"),
         "extracted_call_id": extracted_call_id,
         "thread_id": thread_id,
         "rollout_path": str(rollout_path),
@@ -966,9 +1249,9 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
         "estimated_token_count": math.ceil(char_count / 4),
         "coverage_warning": (
             (
-                "The compact export preserves messages and a verifiable tool trace while omitting invocation "
-                "and result bodies; retrieve a specific Call ID or request a full command-and-result export "
-                "when those details are required."
+                "The recovery transcript preserves messages and confirmed file-read markers in their "
+                "chronological positions. Other tool calls and all tool results are omitted; request a full "
+                "technical export when those details are required."
                 if not full
                 else "The export preserves supported observable work but deterministically excludes "
                 "system/developer messages, hidden reasoning, unknown internal records, and typed binary content."
@@ -991,7 +1274,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="Include full sanitized tool invocation and result bodies instead of the default compact trace.",
+        help="Include full sanitized tool invocation and result bodies instead of the default recovery transcript.",
     )
     parser.add_argument(
         "--extract-call",
