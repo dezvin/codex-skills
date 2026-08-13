@@ -1,0 +1,6 @@
+interface:
+  display_name: "Adaptive Web Research"
+  short_description: "Adaptive research with verifiable web sources"
+  default_prompt: "Use $adaptive-web-research to investigate this question with current web sources and a clear evidence-backed conclusion."
+policy:
+  allow_implicit_invocation: true
