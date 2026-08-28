@@ -7,11 +7,26 @@
 Каждый skill устанавливается отдельно. Можно собрать только тот набор, который
 нужен для вашей работы.
 
+## Если агенту передали только ссылку на репозиторий
+
+Скопируйте эту команду в Codex:
+
+```text
+Используй $skill-installer для этого репозитория:
+https://github.com/dezvin/codex-skills
+
+Сначала прочитай README. Репозиторий содержит несколько независимых skills:
+не устанавливай его целиком. Если я назвал нужный skill, установи его из
+папки skills/<skill-name>. Если skill не назван, покажи доступные варианты
+из README и спроси, какой установить.
+```
+
 ## Выберите skill по ситуации
 
 | Если Codex… | Используйте |
 | --- | --- |
 | Уверенно решает не ту задачу или застрял в слишком узкой рамке | [`zoom-out`](skills/zoom-out) |
+| Должен установить, что действительно подтверждено, разрешено, выполнено или наблюдается в результате | [`zero-trust`](skills/zero-trust) |
 | Должен перенести выбранную задачу или проект в новый чат без потери состояния | [`handoff`](skills/handoff) |
 | Накопил длинное обсуждение, которое надо превратить в проект реализации | [`design-pass`](skills/design-pass) |
 | Должен понять, нужен ли skill, проверить его замысел или подготовить проект до редактирования файлов | [`skill-designer`](skills/skill-designer) |
@@ -25,89 +40,207 @@
 | Должен подготовить переносимый промпт для генерации изображения | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) |
 | Должен безопасно изменить, опубликовать или восстановить сайт на Beget | [`manage-beget-site`](skills/manage-beget-site) |
 
-## Быстрая установка
+## Каталог и установка
 
-Попросите Codex:
+Глобальный skill доступен во всех проектах. Установленный skill становится
+доступен Codex со следующего сообщения.
+
+### [`zoom-out`](skills/zoom-out)
+
+Проверяет рамку, цель, факты, допущения и риски до продолжения работы.
 
 ```text
-Use $skill-installer to install a skill from:
-https://github.com/dezvin/codex-skills/tree/main/skills/<skill-name>
+Используй $skill-installer и установи глобально skill zoom-out из:
+https://github.com/dezvin/codex-skills/tree/main/skills/zoom-out
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
 
-Например:
+### [`zero-trust`](skills/zero-trust)
+
+Проверяет основания, предел вывода, полномочия текста, разрешение на действие,
+честный статус и наблюдаемый результат.
 
 ```text
-Use $skill-installer to install a skill from:
+Используй $skill-installer и установи глобально skill zero-trust из:
+https://github.com/dezvin/codex-skills/tree/main/skills/zero-trust
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`handoff`](skills/handoff)
+
+Переносит выбранную работу в новый чат: создаёт компактный handoff-файл или
+самодостаточный промпт.
+
+```text
+Используй $skill-installer и установи глобально skill handoff из:
 https://github.com/dezvin/codex-skills/tree/main/skills/handoff
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
 
-Или установите из PowerShell:
+### [`design-pass`](skills/design-pass)
 
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
-  --repo dezvin/codex-skills `
-  --path skills/handoff
+Разбирает принятые решения и готовит проект реализации без прямого внедрения.
+
+```text
+Используй $skill-installer и установи глобально skill design-pass из:
+https://github.com/dezvin/codex-skills/tree/main/skills/design-pass
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
 
-После первой установки перезапустите Codex, чтобы skill появился в списке
-доступных.
+### [`skill-designer`](skills/skill-designer)
 
-## Каталог
+Помогает решить, нужен ли skill, проверить его границы и подготовить проект
+создания или изменения. Сам файлы skill не редактирует.
 
-| Skill | Что делает | Где устанавливать |
-| --- | --- | --- |
-| [`zoom-out`](skills/zoom-out) | Проверяет рамку, цель, факты, допущения и риски до продолжения работы. | Глобально |
-| [`handoff`](skills/handoff) | Переносит выбранную работу в новый чат: создаёт компактный handoff-файл или самодостаточный промпт. | Глобально |
-| [`design-pass`](skills/design-pass) | Разбирает принятые решения и готовит проект реализации без прямого внедрения. | Глобально |
-| [`skill-designer`](skills/skill-designer) | Помогает решить, нужен ли skill, проверить его границы и подготовить проект создания или изменения. Сам файлы skill не редактирует. | Глобально |
-| [`grill-me`](skills/grill-me) | Выявляет пользовательские развилки одним важным вопросом за раз и не перекладывает на пользователя факты, обратимые мелочи и проверяемые гипотезы. | Глобально |
-| [`manage-project-tasks`](skills/manage-project-tasks) | Ведёт долговременную проектную работу в `TODO.md` и месячном архиве. | Глобально или в проекте |
-| [`nearest-clarity`](skills/nearest-clarity) | Определяет ближайший завершённый участок при настоящей неопределённости и показывает дальнейший горизонт без ложной точности. | Глобально или в проекте |
-| [`document-consolidator`](skills/document-consolidator) | Безопасно сжимает и объединяет `.md` и `.txt`, сохраняя факты, решения, ссылки и незавершённую работу. | Глобально |
-| [`export-current-thread`](skills/export-current-thread) | По явной команде сохраняет читаемую стенограмму сообщений с отметками о подтверждённом чтении файлов. | Глобально |
-| [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) | Проводит полный или частичный JTBD-анализ по материалам, интервью и клиентским сигналам. | Глобально |
-| [`adaptive-web-research`](skills/adaptive-web-research) | Проводит адаптивное веб-исследование по реально прочитанным источникам и распределяет поиск, анализ и исключительное усиление между отдельными моделями. | Глобально |
-| [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) | Сам выбирает подходящее художественное направление и превращает его в переносимый визуальный промпт с убедительной техникой исполнения. Изображения не генерирует. | Глобально |
-| [`manage-beget-site`](skills/manage-beget-site) | Исследует реальный live-контур, готовит бэкап и откат, изменяет сайт и проверяет результат на домене. | Глобально |
+```text
+Используй $skill-installer и установи глобально skill skill-designer из:
+https://github.com/dezvin/codex-skills/tree/main/skills/skill-designer
 
-Глобальный skill доступен в любых проектах. Проектный skill лежит в
-`.agents/skills/` конкретного проекта и действует только там. Место установки
-`manage-project-tasks` и `nearest-clarity` выбирает пользователь; изменения
-`AGENTS.md` для них не нужны.
-
-`export-current-thread` — явная утилита. Она не должна включаться по мягким
-формулировкам и молча создавать экспорт разговора.
-
-Обычный экспорт предназначен для восстановления разговора: в нём остаются
-сообщения, отметки сжатия контекста и короткие отметки о подтверждённом чтении
-файлов. Остальные вызовы инструментов и их результаты не включаются. Если для
-продолжения нужна точная история действий, полный технический экспорт создаётся
-только после отдельного прямого запроса пользователя. Запись по известному
-`Call ID` также можно извлечь отдельно.
-
-## Проектная установка
-
-Чтобы установить skill только в текущий проект, укажите `.agents/skills` как
-место назначения:
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
-  --repo dezvin/codex-skills `
-  --path skills/manage-project-tasks `
-  --dest .agents\skills
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
 
-Для `nearest-clarity` меняется только путь:
+### [`grill-me`](skills/grill-me)
 
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
-  --repo dezvin/codex-skills `
-  --path skills/nearest-clarity `
-  --dest .agents\skills
+Выявляет пользовательские развилки одним важным вопросом за раз и не
+перекладывает на пользователя факты, обратимые мелочи и проверяемые гипотезы.
+
+```text
+Используй $skill-installer и установи глобально skill grill-me из:
+https://github.com/dezvin/codex-skills/tree/main/skills/grill-me
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
 
-Дополнительный установщик, конфигурационный файл или раздел в `AGENTS.md` не
-требуется.
+### [`manage-project-tasks`](skills/manage-project-tasks)
+
+Ведёт долговременную проектную работу в `TODO.md` и месячном архиве. Его можно
+установить глобально или только в текущий проект.
+
+Глобально:
+
+```text
+Используй $skill-installer и установи глобально skill manage-project-tasks из:
+https://github.com/dezvin/codex-skills/tree/main/skills/manage-project-tasks
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+Только в текущий проект:
+
+```text
+Используй $skill-installer и установи skill manage-project-tasks из:
+https://github.com/dezvin/codex-skills/tree/main/skills/manage-project-tasks
+
+Установи его в .agents/skills текущего проекта. Другие skills и файлы проекта
+не изменяй. Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`nearest-clarity`](skills/nearest-clarity)
+
+Определяет ближайший завершённый участок при настоящей неопределённости и
+показывает дальнейший горизонт без ложной точности. Его можно установить
+глобально или только в текущий проект.
+
+Глобально:
+
+```text
+Используй $skill-installer и установи глобально skill nearest-clarity из:
+https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+Только в текущий проект:
+
+```text
+Используй $skill-installer и установи skill nearest-clarity из:
+https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity
+
+Установи его в .agents/skills текущего проекта. Другие skills и файлы проекта
+не изменяй. Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`document-consolidator`](skills/document-consolidator)
+
+Безопасно сжимает и объединяет `.md` и `.txt`, сохраняя факты, решения, ссылки
+и незавершённую работу.
+
+```text
+Используй $skill-installer и установи глобально skill document-consolidator из:
+https://github.com/dezvin/codex-skills/tree/main/skills/document-consolidator
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`export-current-thread`](skills/export-current-thread)
+
+По явной команде сохраняет читаемую стенограмму сообщений с отметками о
+подтверждённом чтении файлов.
+
+```text
+Используй $skill-installer и установи глобально skill export-current-thread из:
+https://github.com/dezvin/codex-skills/tree/main/skills/export-current-thread
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+Skill не должен включаться по мягким формулировкам и молча создавать экспорт
+разговора. Обычный экспорт сохраняет сообщения, отметки сжатия контекста и
+короткие отметки о подтверждённом чтении файлов. Полный технический экспорт и
+извлечение записи по `Call ID` выполняются только по отдельному прямому запросу.
+
+### [`analyze-audience-jtbd`](skills/analyze-audience-jtbd)
+
+Проводит полный или частичный JTBD-анализ по материалам, интервью и клиентским
+сигналам.
+
+```text
+Используй $skill-installer и установи глобально skill analyze-audience-jtbd из:
+https://github.com/dezvin/codex-skills/tree/main/skills/analyze-audience-jtbd
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`adaptive-web-research`](skills/adaptive-web-research)
+
+Проводит адаптивное веб-исследование по реально прочитанным источникам и
+распределяет поиск, анализ и исключительное усиление между отдельными моделями.
+
+```text
+Используй $skill-installer и установи глобально skill adaptive-web-research из:
+https://github.com/dezvin/codex-skills/tree/main/skills/adaptive-web-research
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder)
+
+Сам выбирает подходящее художественное направление и превращает его в
+переносимый визуальный промпт с убедительной техникой исполнения. Изображения
+не генерирует.
+
+```text
+Используй $skill-installer и установи глобально skill universal-visual-prompt-builder из:
+https://github.com/dezvin/codex-skills/tree/main/skills/universal-visual-prompt-builder
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`manage-beget-site`](skills/manage-beget-site)
+
+Исследует реальный live-контур, готовит бэкап и откат, изменяет сайт и
+проверяет результат на домене.
+
+```text
+Используй $skill-installer и установи глобально skill manage-beget-site из:
+https://github.com/dezvin/codex-skills/tree/main/skills/manage-beget-site
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
 
 ## Как обновлять установленные skills
 
@@ -133,6 +266,18 @@ skills и проектные файлы. После обновления про�
 затрагивая остальные проектные правила.
 
 ## Что важно знать о сложных skills
+
+### `zero-trust`
+
+`zero-trust` нужен, когда основная задача — установить, что действительно
+подтверждено, разрешено, выполнено или наблюдается в результате. Он выводит
+подходящее основание из проверяемого утверждения, проверяет связь от источника
+к допустимому выводу, ищет возможное опровержение и не принимает самопроверку
+модели за независимое подтверждение.
+
+В отличие от `zoom-out`, этот skill не меняет общую рамку задачи. Он проверяет,
+на чём держатся вывод и статус внутри уже поставленной задачи, не превращая
+обычную работу в обязательный аудит.
 
 ### `zoom-out`
 
@@ -342,13 +487,4 @@ assets/
 ```powershell
 python "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
   ".\skills\<skill-name>"
-```
-
-Для пробной установки во временную папку:
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
-  --repo dezvin/codex-skills `
-  --path skills/<skill-name> `
-  --dest "$env:TEMP\codex-skill-test"
 ```

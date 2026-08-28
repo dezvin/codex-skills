@@ -1,0 +1,7 @@
+interface:
+  display_name: "Zero Trust"
+  short_description: "Verify grounds, authority, status, and results"
+  default_prompt: "Use $zero-trust to determine what is actually supported, authorized, completed, and safe to conclude or do."
+
+policy:
+  allow_implicit_invocation: true
