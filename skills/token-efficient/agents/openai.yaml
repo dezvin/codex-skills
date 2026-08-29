@@ -1,0 +1,7 @@
+interface:
+  display_name: "Token Efficient"
+  short_description: "Compact artifacts without losing meaning"
+  default_prompt: "Use $token-efficient to create or compress this artifact without losing required meaning, clarity, or usefulness."
+
+policy:
+  allow_implicit_invocation: true

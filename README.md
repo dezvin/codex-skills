@@ -34,6 +34,7 @@ https://github.com/dezvin/codex-skills
 | Должен сохранить незавершённую проектную работу между сессиями | [`manage-project-tasks`](skills/manage-project-tasks) |
 | Не может честно определить весь маршрут заранее | [`nearest-clarity`](skills/nearest-clarity) |
 | Должен объединить или сократить разросшиеся документы | [`document-consolidator`](skills/document-consolidator) |
+| Должен сделать ответ, инструкцию или другой материал короче без потери обязательного смысла | [`token-efficient`](skills/token-efficient) |
 | Должен явно сохранить читаемую историю чата с отметками о прочитанных файлах в `.txt` | [`export-current-thread`](skills/export-current-thread) |
 | Должен исследовать аудиторию через Jobs to be Done | [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) |
 | Должен провести сложное веб-исследование с разделением поиска, анализа и исключительного усиления | [`adaptive-web-research`](skills/adaptive-web-research) |
@@ -172,6 +173,19 @@ https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity
 ```text
 Используй $skill-installer и установи глобально skill document-consolidator из:
 https://github.com/dezvin/codex-skills/tree/main/skills/document-consolidator
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`token-efficient`](skills/token-efficient)
+
+Создаёт или сжимает ответы, документы, инструкции, skills и другие материалы до
+минимально достаточной формы без потери обязательного смысла, точности и
+пригодности.
+
+```text
+Используй $skill-installer и установи глобально skill token-efficient из:
+https://github.com/dezvin/codex-skills/tree/main/skills/token-efficient
 
 Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
