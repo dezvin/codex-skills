@@ -92,10 +92,16 @@ opened_or_resolved_url
 read_at
 reading_status: full | relevant_part | partial | blocked | failed
 reading_scope_or_limit
+source_title_if_available
+source_author_or_organization_if_available
+published_or_updated_at_if_available
+source_role_if_determinable
 research_question
 finding
 finding_role: supports | limits | challenges | context | opens_gap
 ```
+
+For a material source, preserve the title, author or organization, publication or update date, and source role when they are actually available. Use a short ordinary description for the role, such as official document, primary research, independent analysis, secondary orientation, or user experience; do not force a fixed enum or invent missing metadata. `reading_scope_or_limit` remains the place to record incomplete access.
 
 Do not create a supporting finding from a snippet. Separate repeat readings over time when the content may have changed.
 
@@ -129,6 +135,10 @@ readings[]
   read_at
   reading_status
   reading_scope_or_limit
+  source_title_if_available
+  source_author_or_organization_if_available
+  published_or_updated_at_if_available
+  source_role_if_determinable
 findings[]
   statement
   role: supports | limits | challenges | context | opens_gap
@@ -158,6 +168,10 @@ reopened_readings[]
   document_id or supplied_url
   reading_status
   reading_scope_or_limit
+  source_title_if_available
+  source_author_or_organization_if_available
+  published_or_updated_at_if_available
+  source_role_if_determinable
 findings[]
   statement
   role: supports | limits | challenges | context | opens_gap

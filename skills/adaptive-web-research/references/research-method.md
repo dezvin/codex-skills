@@ -51,6 +51,12 @@ Always verify the exact meaning of a material claim against the page already rea
 
 For a material recommendation, comparison, causal account, disputed issue, or high-impact answer, ask what could make the current conclusion false, too broad, or conditional. Use an existing read objection when adequate; otherwise search specifically for limitations, exceptions, failures, counterexamples, contradictory data, or an alternate explanation. Do not add a ritual contrarian query to a low-risk simple fact.
 
+## Merge the first pass before follow-up
+
+Complete the bounded primary acquisition for the material questions that bear on the same decision before choosing a focused second wave. Merge the returned packets, including visible partial or failed branches, into the working picture first. Then derive repeat, verification, contrarian, or gap-filling actions from the combined coverage, contradictions, and gaps rather than from the first isolated worker return.
+
+Do not wait indefinitely for a failed branch: its explicit gap is part of the merged picture. Work on a materially unrelated decision may continue independently.
+
 ## Select sources for their role
 
 Prioritize by contribution to the current question, not merely rank or domain fame:
@@ -93,6 +99,8 @@ For every material claim, check:
 
 Delete, narrow, qualify, or mark unresolved claims that fail. Do not turn several mirrors, rewrites, or a shared upstream source into independent confirmation.
 
+When quantitative sources appear to conflict, compare what each one measured, the covered period, the population or sample, the denominator, and whether the reported metrics are actually comparable. Do not choose a winner or combine the numbers until those boundaries align; otherwise explain the difference or leave the contradiction unresolved.
+
 Word, term, or structural overlap, and membership in a familiar or reputable-domain list, may help discovery or preliminary selection. None of them verifies truth or semantic support and none can replace checking the claim against the content actually read.
 
 ## Judge coverage and stopping
@@ -110,6 +118,8 @@ Distinguish:
 Counts of queries, sources, pages, workers, waves, or branch depth prove none of these states.
 
 ## Pre-final check
+
+First identify the load-bearing claims whose failure or narrower scope would change the direct answer, comparison, or recommendation. Recheck each one against the already-read source for exact meaning, date, conditions, and scope. This is a second semantic pass and may be performed by the coordinator; do not launch another worker, source, or search solely to make it look independent. If the existing basis remains insufficient, narrow the claim or use the normal follow-up gate.
 
 Read the draft as a new artifact. Confirm that it did not:
 

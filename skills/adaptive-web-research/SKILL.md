@@ -120,6 +120,8 @@ One current, appropriate, actually read primary source may be enough for a simpl
 
 After every material pass, update the affected direction as `closed`, `active`, `deferred`, `separate_research`, `dropped`, or `blocked`, with a reason. Use [references/research-expansion.md](references/research-expansion.md) before opening evidence-derived branches.
 
+Complete the bounded first pass for the material questions that bear on the same decision, then merge those Luna packets into the working picture before opening a focused follow-up wave. Derive repeat, verification, contrarian, and gap-filling work from the merged evidence and visible failed or partial branches, not from the first isolated return. An unrelated branch does not need to delay that decision.
+
 ## 7. Continue only for a material reason
 
 Run another pass only when all three are true:
@@ -157,6 +159,7 @@ If the coordinator recognizes that source, tool, worker, or context state can no
 
 Let one coordinator write the final answer. Before sending it, verify that:
 
+- every load-bearing claim whose failure or narrower scope would change the direct answer or recommendation has been rechecked against the already-read source for exact meaning, date, conditions, and scope; this second semantic pass does not by itself require another worker, source, or search;
 - every material factual statement comes from content actually read in this run;
 - a clickable source link sits next to the statement it supports;
 - the wording does not exceed the source's date, version, conditions, or scope;

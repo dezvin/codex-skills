@@ -32,6 +32,9 @@ Open and read every source used for a material finding. Search snippets are
 navigation candidates only. Preserve the normalized document ID, requested and
 opened URL, reading time, status and limit, finding role, contradictions, gaps,
 and only next candidates that could materially affect the coordinator's answer.
+For each material source, also preserve its title, author or organization,
+publication or update date, and source role when actually available. Never
+invent missing source metadata.
 Do not decide whether the whole research is sufficient. Do not write files,
 edit the workspace, spawn workers, or produce a separate final report.
 
@@ -40,7 +43,9 @@ search_attempts, raw_discoveries, normalization, readings, findings,
 contradictions, gaps, and next_candidates. Normalization contains status
 (complete|unavailable|failed), error when applicable, records, and url_groups.
 Every reading includes document_id, requested_url, opened_or_resolved_url,
-read_at, reading_status, and reading_scope_or_limit. Every finding includes
+read_at, reading_status, reading_scope_or_limit, source_title_if_available,
+source_author_or_organization_if_available, published_or_updated_at_if_available,
+and source_role_if_determinable. Every finding includes
 statement, role (supports|limits|challenges|context|opens_gap), document_id,
 opened_or_resolved_url, reading_status, and reading_scope_or_limit. Use only
 URLs actually read for findings. If content was blocked or partial, preserve
