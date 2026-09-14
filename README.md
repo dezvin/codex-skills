@@ -38,6 +38,7 @@ https://github.com/dezvin/codex-skills
 | Должен явно сохранить читаемую историю чата с отметками о прочитанных файлах в `.txt` | [`export-current-thread`](skills/export-current-thread) |
 | Должен исследовать аудиторию через Jobs to be Done | [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) |
 | Должен провести сложное веб-исследование с разделением поиска, анализа и исключительного усиления | [`adaptive-web-research`](skills/adaptive-web-research) |
+| Должен прочитать конкретные публичные посты Telegram по прямым ссылкам | [`telegram-post-reader`](skills/telegram-post-reader) |
 | Должен подготовить переносимый промпт для генерации изображения | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) |
 | Должен безопасно изменить, опубликовать или восстановить сайт на Beget | [`manage-beget-site`](skills/manage-beget-site) |
 
@@ -227,6 +228,22 @@ https://github.com/dezvin/codex-skills/tree/main/skills/analyze-audience-jtbd
 ```text
 Используй $skill-installer и установи глобально skill adaptive-web-research из:
 https://github.com/dezvin/codex-skills/tree/main/skills/adaptive-web-research
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`telegram-post-reader`](skills/telegram-post-reader)
+
+Читает текст и прикреплённые изображения конкретных публичных постов Telegram
+по прямым ссылкам. Не ищет и не пролистывает каналы.
+
+```text
+Используй $skill-installer и установи глобально skill telegram-post-reader из:
+https://github.com/dezvin/codex-skills/tree/main/skills/telegram-post-reader
+
+После установки проверь requirements.txt этого skill. Если для запуска
+scripts/read_posts.py не хватает beautifulsoup4, установи только зависимость из
+requirements.txt в тот Python, которым Codex запускает этот скрипт.
 
 Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```

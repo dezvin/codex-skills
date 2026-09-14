@@ -1,0 +1,7 @@
+interface:
+  display_name: "Telegram Post Reader"
+  short_description: "Read direct public Telegram posts and images"
+  default_prompt: "Use $telegram-post-reader to retrieve the direct public Telegram post links in this task, read their attached images, and then continue the original task."
+
+policy:
+  allow_implicit_invocation: true
