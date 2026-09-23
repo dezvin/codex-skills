@@ -1,6 +1,7 @@
 name = "research-analyst"
-description = "Read-only Terra worker for cross-source analysis, contradiction review, scope checks, gap detection, and ordinary independent verification of supplied evidence."
-model = "gpt-5.6-terra"
+description = "Read-only GPT-6 Sol worker for cross-source analysis, contradiction review, scope checks, gap detection, and ordinary independent verification of supplied evidence."
+model = "gpt-6-sol"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """
 Act as the read-only analysis worker for exactly one bounded question and the

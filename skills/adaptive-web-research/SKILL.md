@@ -78,11 +78,15 @@ Use Markdown or JSON as convenient. This is not a hidden database or promised cr
 
 ## 5. Decompose and route work
 
+Role labels: Luna means acquisition, Analyst means cross-source analysis, and Escalation means the exceptional review route.
+
+Model assignments: `research-worker` uses `gpt-6-luna` with reasoning effort `max`; `research-analyst` uses `gpt-6-sol` with reasoning effort `high`. `research-escalation` retains `gpt-5.6-sol`. A direct model route must preserve the assigned model and reasoning effort as well as permissions.
+
 Split only along material research questions. A branch must have a clear evidence target and a plausible effect on the answer.
 
-Use Luna as the primary web-acquisition layer for substantive research. By default, route discovery, query execution, URL handling, page opening and reading, and bounded evidence extraction to Luna. For a connected question, first decompose the needed evidence into bounded Luna tasks, then give the returned packets to Terra for cross-source analysis, causal reconstruction, scope comparison, contradiction analysis, and gap detection.
+Use Luna as the primary web-acquisition layer for substantive research. By default, route discovery, query execution, URL handling, page opening and reading, and bounded evidence extraction to Luna. For a connected question, first decompose the needed evidence into bounded Luna tasks, then give the returned packets to Analyst for cross-source analysis, causal reconstruction, scope comparison, contradiction analysis, and gap detection.
 
-If Terra identifies a missing evidence target, send that bounded target back to Luna. Terra may reopen supplied URLs to check meaning and scope, but it does not start new searches as the normal route. Let Terra search directly only when Luna is unavailable, and keep that degradation visible. Use Sol only after a material gap remains after Terra or when the cost of error independently justifies it.
+If Analyst identifies a missing evidence target, send that bounded target back to Luna. Analyst may reopen supplied URLs to check meaning and scope, but it does not start new searches as the normal route. Let Analyst search directly only when Luna is unavailable, and keep that degradation visible. Use Escalation only after a material gap remains after Analyst or when the cost of error independently justifies it.
 
 Use the coordinator's current model for orchestration and final synthesis. Do not run the same branch on several models just in case. Pass usable prior findings forward during escalation instead of restarting automatically.
 
@@ -90,7 +94,7 @@ Launch independent ready branches in parallel within the slots actually availabl
 
 Give every worker one compact standalone brief and require the common return from [references/result-schema.md](references/result-schema.md). Validate the return before accepting it. A malformed, empty, unread, or partial return is not a full success.
 
-Use technically read-only routes for ordinary research and review work. The personal named routes are `research-worker` for Luna acquisition, `research-analyst` for Terra analysis or ordinary independent review, and `research-escalation` for an explicitly justified Sol escalation. A model role and its launch mechanism are separate. While direct Luna selection is unavailable, `research-worker` is the active Luna launch route, not a secondary research role. If direct model selection becomes available, use it only when it preserves the required technical permission boundary; otherwise keep the named read-only route. If a live parent permission override broadens a child's effective sandbox, keep that limitation visible and do not describe the run as technically read-only. If Luna cannot be launched by either route, use Terra or the coordinator for acquisition as a visible degradation; never jump to Sol solely because Luna is unavailable.
+Use technically read-only routes for ordinary research and review work. The personal named routes are `research-worker` for Luna acquisition, `research-analyst` for Analyst analysis or ordinary independent review, and `research-escalation` for an explicitly justified reasoning escalation. A model role and its launch mechanism are separate. While direct Luna selection is unavailable, `research-worker` is the active Luna launch route, not a secondary research role. If direct model selection becomes available, use it only when it preserves the required technical permission boundary; otherwise keep the named read-only route. If a live parent permission override broadens a child's effective sandbox, keep that limitation visible and do not describe the run as technically read-only. If Luna cannot be launched by either route, use Analyst or the coordinator for acquisition as a visible degradation; never jump to Escalation solely because Luna is unavailable.
 
 Do not ask a worker to write a file for ordinary findings. If the user explicitly requests a worker-authored draft, give one writer one unique artifact and verify it before merging. Never let parallel workers edit the same canonical file.
 

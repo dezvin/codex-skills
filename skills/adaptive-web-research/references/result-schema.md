@@ -155,7 +155,7 @@ next_candidates[]
 
 `raw_discoveries` is the exact batch given to the helper. On successful normalization, `normalization.records` and `normalization.url_groups` are the helper output. If normalization is unavailable or fails, keep the raw discoveries, put the reason in `normalization.error`, leave readings and findings empty for those candidates, and return `partial` or `failed`. Coordinator validation, not the worker's `status`, decides whether the package is usable.
 
-## Terra analysis and Sol escalation return
+## Analysis and escalation return
 
 Analysis and review workers use the same outer status and question but do not imitate acquisition. They return:
 
@@ -183,7 +183,7 @@ gaps[]
 limitations[]
 ```
 
-Terra normally analyzes the supplied packet and may reopen its URLs. A new evidence target goes back to Luna. Sol receives the same bounded form only after the coordinator records the material reason for escalation.
+Analyst normally analyzes the supplied packet and may reopen its URLs. A new evidence target goes back to Luna. Escalation receives the same bounded form only after the coordinator records the material reason for escalation.
 
 ## Final outcome and answer
 

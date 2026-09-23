@@ -13,8 +13,8 @@ import tomllib
 
 
 EXPECTED = {
-    "research-worker.toml": ("research-worker", "gpt-5.6-luna"),
-    "research-analyst.toml": ("research-analyst", "gpt-5.6-terra"),
+    "research-worker.toml": ("research-worker", "gpt-6-luna"),
+    "research-analyst.toml": ("research-analyst", "gpt-6-sol"),
     "research-escalation.toml": ("research-escalation", "gpt-5.6-sol"),
 }
 
