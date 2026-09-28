@@ -39,6 +39,7 @@ https://github.com/dezvin/codex-skills
 | Должен исследовать аудиторию через Jobs to be Done | [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) |
 | Должен собрать поисковые формулировки и доступные частотности по теме или сравнить несколько тем | [`wordstat`](skills/wordstat) |
 | Должен провести сложное веб-исследование с разделением поиска, анализа и исключительного усиления | [`adaptive-web-research`](skills/adaptive-web-research) |
+| Должен подготовить задание для Deep Research / Deep Search или проверить предложенный системой план перед запуском | [`research-prompter`](skills/research-prompter) |
 | Должен прочитать конкретные публичные посты Telegram по прямым ссылкам | [`telegram-post-reader`](skills/telegram-post-reader) |
 | Должен подготовить переносимый промпт для генерации изображения | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) |
 | Должен безопасно изменить, опубликовать или восстановить сайт на Beget | [`manage-beget-site`](skills/manage-beget-site) |
@@ -230,6 +231,19 @@ https://github.com/dezvin/codex-skills/tree/main/skills/analyze-audience-jtbd
 ```text
 Используй $skill-installer и установи глобально skill adaptive-web-research из:
 https://github.com/dezvin/codex-skills/tree/main/skills/adaptive-web-research
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`research-prompter`](skills/research-prompter)
+
+Готовит самостоятельное задание для Deep Research / Deep Search из запроса и
+доступного контекста; может проверить план, который система показала перед
+запуском. Само исследование не проводит.
+
+```text
+Используй $skill-installer и установи глобально skill research-prompter из:
+https://github.com/dezvin/codex-skills/tree/main/skills/research-prompter
 
 Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Prompter"
+  short_description: "Готовые задания для Deep Research и Deep Search"
+  default_prompt: "Используй $research-prompter, чтобы подготовить готовое самостоятельное задание для Deep Research по моему запросу и релевантному контексту."
+policy:
+  allow_implicit_invocation: true
