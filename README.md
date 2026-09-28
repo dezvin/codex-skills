@@ -37,6 +37,7 @@ https://github.com/dezvin/codex-skills
 | Должен сделать ответ, инструкцию или другой материал короче без потери обязательного смысла | [`token-efficient`](skills/token-efficient) |
 | Должен явно сохранить читаемую историю чата с отметками о прочитанных файлах в `.txt` | [`export-current-thread`](skills/export-current-thread) |
 | Должен исследовать аудиторию через Jobs to be Done | [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) |
+| Должен собрать поисковые формулировки и доступные частотности по теме или сравнить несколько тем | [`wordstat`](skills/wordstat) |
 | Должен провести сложное веб-исследование с разделением поиска, анализа и исключительного усиления | [`adaptive-web-research`](skills/adaptive-web-research) |
 | Должен прочитать конкретные публичные посты Telegram по прямым ссылкам | [`telegram-post-reader`](skills/telegram-post-reader) |
 | Должен подготовить переносимый промпт для генерации изображения | [`universal-visual-prompt-builder`](skills/universal-visual-prompt-builder) |
@@ -229,6 +230,20 @@ https://github.com/dezvin/codex-skills/tree/main/skills/analyze-audience-jtbd
 ```text
 Используй $skill-installer и установи глобально skill adaptive-web-research из:
 https://github.com/dezvin/codex-skills/tree/main/skills/adaptive-web-research
+
+Если skill уже установлен, не перезаписывай его и сообщи об этом.
+```
+
+### [`wordstat`](skills/wordstat)
+
+Собирает поисковые формулировки и доступные частотности из Yandex Wordstat и
+подсказок Yandex, Google и YouTube; сравнивает темы при одинаковой методике.
+Отдельный добор через Topvisor — платный шаг. Для запуска нужен Python 3.11+;
+сторонние библиотеки не требуются.
+
+```text
+Используй $skill-installer и установи глобально skill wordstat из:
+https://github.com/dezvin/codex-skills/tree/main/skills/wordstat
 
 Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```

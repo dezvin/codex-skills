@@ -1,0 +1,15 @@
+"""Launch the bundled command line interface from any working directory."""
+
+from pathlib import Path
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.environment import load_windows_user_environment
+from scripts.cli import main
+
+
+if __name__ == "__main__":
+    load_windows_user_environment()
+    raise SystemExit(main())

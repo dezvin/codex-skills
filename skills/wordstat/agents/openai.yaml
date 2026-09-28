@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wordstat"
+  short_description: "Сбор и сравнение поискового спроса"
+  default_prompt: "Используй $wordstat, чтобы собрать поисковый спрос вокруг темы и показать результат понятным отчётом."
