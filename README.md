@@ -33,7 +33,6 @@ https://github.com/dezvin/codex-skills
 | Должен выявить значимые развилки в идее, плане или решении | [`grill-me`](skills/grill-me) |
 | Должен сохранить незавершённую проектную работу между сессиями | [`manage-project-tasks`](skills/manage-project-tasks) |
 | Не может честно определить весь маршрут заранее | [`nearest-clarity`](skills/nearest-clarity) |
-| Должен объединить или сократить разросшиеся документы | [`document-consolidator`](skills/document-consolidator) |
 | Должен сделать ответ, инструкцию или другой материал короче без потери обязательного смысла | [`token-efficient`](skills/token-efficient) |
 | Должен явно сохранить читаемую историю чата с отметками о прочитанных файлах в `.txt` | [`export-current-thread`](skills/export-current-thread) |
 | Должен исследовать аудиторию через Jobs to be Done | [`analyze-audience-jtbd`](skills/analyze-audience-jtbd) |
@@ -166,18 +165,6 @@ https://github.com/dezvin/codex-skills/tree/main/skills/nearest-clarity
 
 Установи его в .agents/skills текущего проекта. Другие skills и файлы проекта
 не изменяй. Если skill уже установлен, не перезаписывай его и сообщи об этом.
-```
-
-### [`document-consolidator`](skills/document-consolidator)
-
-Безопасно сжимает и объединяет `.md` и `.txt`, сохраняя факты, решения, ссылки
-и незавершённую работу.
-
-```text
-Используй $skill-installer и установи глобально skill document-consolidator из:
-https://github.com/dezvin/codex-skills/tree/main/skills/document-consolidator
-
-Если skill уже установлен, не перезаписывай его и сообщи об этом.
 ```
 
 ### [`token-efficient`](skills/token-efficient)
