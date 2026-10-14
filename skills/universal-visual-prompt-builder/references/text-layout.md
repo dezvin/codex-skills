@@ -11,8 +11,8 @@
 7. Typography Direction
 8. Placement And Zones
 9. Negative Space And Margins
-10. Text Length
-11. Posters, Slides, Infographics, UI
+10. Text Length And Typography Baseline
+11. Posters, Slides, Infographics, UI, And Mobile Formats
 12. Text Replacement And Localization
 13. Layout In Sets
 14. Exact Spelling
@@ -168,30 +168,28 @@ Useful wording:
 - "Preserve clean negative space around every text element."
 - "Do not allow props or product edges to intersect the text."
 
-## 10. Text Length
+## 10. Text Length And Typography Baseline
 
-Short text is safer inside generated images.
+Modern multimodal image models (the 2025–2026 baseline including GPT Image 2 / 2.5) natively understand text structure and render multilingual typography, including Russian Cyrillic, with high precision across headlines, subheadlines, bullet points, multi-line cards, and full-screen editorial copy.
 
-Prefer:
+Do not fall back to legacy 2023–2024 diffusion workarounds (such as cutting approved text, refusing to render copy, or moving text outside the image).
 
-- headlines;
-- short subheads;
-- short CTA;
-- short labels;
-- simple annotations;
-- numeric callouts.
+### Graphic Typography Overlay Vs. Diegetic Props
 
-If text is long, consider:
+Distinguish two fundamentally different approaches:
 
-- splitting into fewer visible words;
-- generating the visual base first;
-- moving long copy outside the image;
-- recommending a multi-pass workflow;
-- allowing multi-line adaptation if the user approves.
+1. **Graphic Typography Overlay:**
+   - Intentional typography layer over full-bleed artwork across any format (posters, slides, infographics, flyers, booklets, business cards, covers, mobile stories, social cards).
+   - Requires full-bleed composition across the selected medium with organic negative space (shadow, blur, quiet areas) for high-contrast, legible text.
+   - Strictly NO artificial split-screens: never split the frame into flat solid-color blocks or banner strips unless a modular UI wireframe is specifically requested.
+   - Copy rules: preserve exact user-provided in-image text in full; enforce clear typographic hierarchy (Headline > Subhead/Bullets > CTA) and generous margins; never strip approved text for external overlay.
 
-Do not shorten exact approved text.
+2. **Diegetic Scene Props:**
+   - Text physically embedded in 3D scene objects (signboard, book page, engraving).
+   - Use ONLY when the brief explicitly requests physical text on an object.
+   - **Failure rule:** Never demote graphic headlines, story text, or slide copy into tiny handwriting in notebooks, tags, or desktop props.
 
-## 11. Posters, Slides, Infographics, UI
+## 11. Posters, Slides, Infographics, UI, And Mobile Formats
 
 Poster:
 
@@ -310,12 +308,26 @@ Repeated layout skeleton in series:
 - preserve typography standards;
 - vary placement, zones, composition family, and text-image relationship.
 
+Prop demotion:
+
+- replacing graphic typography overlay with microscopic handwriting in scene notebooks or desktop props; response: restore graphic typography overlay over the composition.
+
+Artificial split-screen drift:
+
+- dividing the image into flat color blocks and cropped visuals; response: restore full-bleed artwork with organic contrast and negative space.
+
+Legacy text omission:
+
+- refusing or omitting approved copy under legacy generative assumptions; response: render the exact quoted text using modern typography controls.
+
 ## 16. What This File Must Not Do
 
 This file must not:
 
-- rewrite exact approved text;
+- rewrite or truncate exact approved text;
 - force infographic structure on a simple caption task;
 - add layout complexity where text is minor;
-- assume long text will render perfectly in one pass;
+- demote graphic typography into tiny in-scene props;
+- force artificial split-screen color blocks where full-bleed art is required;
+- assume text cannot be rendered and must be omitted;
 - override exact user text or item-level constraints.

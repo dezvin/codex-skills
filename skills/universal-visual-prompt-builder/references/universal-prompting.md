@@ -5,7 +5,7 @@
 1. Purpose
 2. Read When
 3. Core Doctrine
-4. Dual-Model Baseline
+4. Dual-Model Baseline And Modern Multimodal Typography
 5. Build Triad
 6. Task Interpretation
 7. Subject Binding
@@ -72,12 +72,21 @@ Avoid:
 - prompt keyword soup;
 - decorative filler that does not change the result.
 
-## 4. Dual-Model Baseline
+## 4. Dual-Model Baseline And Modern Multimodal Typography
 
 Treat `GPT Image 2` and `Nano Banana 2` as one active modern baseline for
 prompt construction. Use the useful prompting principles associated with both
 models in every substantive build. Do not appoint either model as the default,
 primary, backup, or fallback.
+
+### Overcoming Legacy 2023–2024 Model Limits:
+
+The multimodal models of the 2025–2026 generation fundamentally overcome the historical limitations of 2023–2024 diffusion models (such as early DALL-E 3, Midjourney v5/v6, and Stable Diffusion). Modern foundation models natively understand linguistic and typographic structure, enabling accurate multilingual text rendering (including Russian Cyrillic, Latin, and complex scripts) across headlines, subheadlines, bullet points, and multi-line body text.
+
+**Strictly forbidden legacy fallbacks:**
+- Do NOT refuse or avoid rendering text under the false assumption that image models cannot write properly.
+- Do NOT cut, shorten, or move approved copy outside the image unless explicitly requested.
+- Do NOT demote graphic text into tiny in-scene props (such as handwriting in a notebook or cards on a desk) when the task requires visible, readable messaging.
 
 The shared baseline favors:
 
@@ -86,6 +95,7 @@ The shared baseline favors:
   interacting constraints need stronger control;
 - exact quoted text with explicit hierarchy, placement, spacing, contrast, and
   clean zones;
+- full-bleed artwork across the selected medium (photography, illustration, 3D, collage, painting) with organic negative space for text;
 - preserve-first edit instructions that state both the requested change and
   what must remain unchanged;
 - explicit reference roles, priorities, targets, and non-transfer boundaries;
@@ -220,6 +230,14 @@ Avoid opening with:
 - stunning shot of;
 - masterpiece render of;
 - high quality image of.
+
+### Two-Part Structure For Typography Overlays:
+
+When the image includes visible graphic text (headlines, cards, slides, stories, infographics, flyers, posters), structure the prompt into clear functional sections:
+
+1. **Visual scene:** Describe the full-bleed artwork across the selected medium (photography, illustration, 3D, collage, painting) with composition, subject, lighting, mood, and materials, ensuring natural negative space or quiet background areas for text. Never create an artificial split-screen or flat PowerPoint banner.
+2. **Typography overlay:** Define the graphic text layer directly: exact quoted text in source language, placement zone (upper third, lower third, centered), hierarchy (headline > subhead > body/bullets), font tone (e.g. crisp modern sans-serif), high contrast (e.g. crisp white lettering against dark/shadowed background), and generous breathing room.
+3. **Typography rules:** Mandate exact spelling as quoted, pristine edges, correct alphabet/script (e.g. Russian Cyrillic), and strictly forbid Latin character substitutions or garbled letters.
 
 ## 10. Constraint Discipline
 

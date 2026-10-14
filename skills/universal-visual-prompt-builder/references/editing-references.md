@@ -65,6 +65,21 @@ preservation, ask before building.
 
 If the base result is already close, prefer surgical refinement over full reconstruction.
 
+### The Two-Line Rule And Multi-Turn Protocol
+
+Modern multimodal generators (GPT Image 2.5 and Nano Banana 2 baseline) require atomic editing:
+
+1. **One turn = one atomic change:**
+   Never bundle multiple structural or regional modifications into a single prompt. Attempting to change outfit, background, and lighting simultaneously collapses model attention and destroys preserved anchors. Decompose multi-part edits into an explicit sequential chain.
+
+2. **Strict Two-Line Rule syntax:**
+   Every edit prompt for an existing image must strictly follow a two-line structure:
+   - **Line 1 (Change Target):** Specific action verb + exact target element/region + new concept/attribute.
+   - **Line 2 (Preservation Lock):** Explicit, itemized anchors that must remain untouched (identity, pose, background, lighting, framing, palette, text).
+
+3. **The Exclusion Principle ("Unlisted is Permitted"):**
+   Never rely on vague negative phrases like "keep everything else unchanged" or "do not touch other aspects". Modern models ignore vague negative catch-alls and treat anything omitted from the preservation list as fair game for re-randomization. Itemize every critical preservation target explicitly.
+
 ## 4. Edit Routing
 
 Region-aware surgical edit:
@@ -208,10 +223,17 @@ Mixed references must have explicit hierarchy:
 4. what is borrowed;
 5. what must not transfer.
 
+When referencing multiple uploaded images, explicitly tag their roles with numbered identifiers:
+- `Reference Image 1: [Base structural / Subject role]`
+- `Reference Image 2: [Attribute / Lighting / Style source]`
+
 Example:
 
 ```text
-Use Image 1 as the base structural reference for composition. Use Image 2 for Character A identity only. Use Image 3 for global lighting only. Do not transfer outfit, pose, or background from the identity reference.
+Reference Image 1: Base image for composition, room geometry, and lighting.
+Reference Image 2: Style reference for armchair material and color only.
+Replace the wooden chair in Reference Image 1 with the leather armchair styling from Reference Image 2.
+Preserve room layout, window lighting, wall color, flooring, and camera perspective from Reference Image 1.
 ```
 
 If reference assignments are unclear and materially affect the result, ask the user to label references or provide visible numbers.
@@ -367,31 +389,44 @@ Reference-sheet drift:
 - state identity-only role;
 - exclude sheet grid, background, lighting, crop, and outfit transfer.
 
+Multi-edit collapse:
+
+- attempting to edit multiple separate structural elements or regions in a single prompt;
+- fix: break down into atomic multi-turn steps; apply the Two-Line Rule sequentially.
+
+Unlisted mutation:
+
+- model mutates elements not explicitly mentioned in the preservation line;
+- fix: explicitly enumerate every critical invariant (identity, pose, background, lighting, camera angle, color palette, text); eliminate vague phrases like "keep everything else unchanged".
+
 ## 15. Prompt Patterns
 
-Controlled replacement:
+Two-Line Rule (Controlled Atomic Edit):
 
 ```text
-Replace ONLY the [target object/region] with [new concept]. Preserve [identity / geometry / composition / camera angle / lighting / layout]. Keep all other aspects unchanged.
+Replace ONLY [target element/region] with [new attribute/object].
+Preserve [explicit list of invariants: person identity, pose, clothing, background environment, lighting direction, camera angle, palette].
 ```
 
 Attribute change:
 
 ```text
-Change the [target object] to [new attribute]. Preserve the original [identity / structure / scene / composition].
+Change the [target object] to [new attribute].
+Preserve original [identity, structure, environment, lighting, composition].
 ```
 
 Surgical refinement:
 
 ```text
-Refine the existing image. Keep the composition and overall concept. Improve only [dominant failure mode]. Do not redesign the scene.
+Refine [dominant visible defect] in [target region].
+Preserve overall composition, identity, scene geometry, and lighting without redesigning the scene.
 ```
 
 Example-based transformation:
 
 ```text
-Analyze the transformation from Image 1 to Image 2, then apply the same
-transformation logic to Image 3. Preserve Image 3's identity, geometry,
+Analyze the transformation from Reference Image 1 to Reference Image 2, then apply the same
+transformation logic to Reference Image 3. Preserve Reference Image 3's identity, geometry,
 composition, and unrelated details.
 ```
 

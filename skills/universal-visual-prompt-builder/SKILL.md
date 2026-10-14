@@ -46,8 +46,7 @@ Use this order:
 3. exact in-image text, preservation requirements, and hard constraints;
 4. intended use, deliverable type, ratio, medium, or target model when material;
 5. explicit style direction;
-6. the smallest relevant reference set from this skill;
-7. patterns only as low-priority aids.
+6. the smallest relevant reference set from this skill.
 
 Resolve conflicts as follows:
 
@@ -153,8 +152,6 @@ Do not output the normalized working layer unless the user asks for analysis.
   materials, portraits, products, or believable environments matter.
 - Read `references/troubleshooting.md` after a weak result, named failure mode,
   or failed readiness check.
-- Read `references/patterns.md` only after task type, architecture, and success
-  criterion are known and one compact pattern would help.
 
 ## Output
 
