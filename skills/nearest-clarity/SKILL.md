@@ -19,6 +19,8 @@ description: >-
 
 Advance through genuine uncertainty without presenting the whole route as known.
 
+Read sections 1-2 of `references/method.md` when the application boundary is unclear.
+
 ## Establish The Navigation Frame
 
 Always establish these layers before selecting the current action:
@@ -54,6 +56,8 @@ For the nearest segment, establish:
 - which provisional segment, fork, or decision it may open next.
 
 Mark later stages honestly as provisional. Do not turn a plausible sequence into a committed route.
+
+If the segment's purpose and observable completion result cannot be defined honestly, do not invent a segment. Name the missing decision, input, or permission. Perform only a bounded local rebuild of the basis that remains within current authority. If the segment is still not definable, stop before execution.
 
 ## Choose The Iteration Type
 
@@ -102,6 +106,8 @@ Keep internal classification out of the user-facing answer unless it helps the u
 - If the nearest segment produced its completion result, close it and open the next honest segment.
 - If repeated exploratory iterations do not reduce decision-relevant uncertainty, narrow the question or rebuild the basis.
 
+Read sections 11-12 of `references/method.md` when choosing a complex transition or rebuilding the basis.
+
 To rebuild the basis locally, answer:
 
 1. What changed?
@@ -111,7 +117,7 @@ To rebuild the basis locally, answer:
 5. Which provisional route elements must change?
 6. What is now the nearest honestly plannable segment?
 
-Do not invoke another skill for this transition.
+Rebuild the basis inside `nearest-clarity`; do not invoke another skill for this transition. This does not replace the domain skill that owns the current action. When execution resumes, follow that skill's contract.
 
 ## Answer Direction Questions
 
@@ -130,6 +136,8 @@ Show the navigation frame again after closing a segment, materially changing the
 
 Keep the answer concise, but do not achieve brevity by removing navigation layers or reducing the segment to one action.
 
+Read section 18 of `references/method.md` when a worked example is needed.
+
 ## Boundaries
 
 - Do not attempt to enter or invoke Codex Plan mode. If the user already selected it, apply this method inside the active mode.
@@ -139,14 +147,14 @@ Keep the answer concise, but do not achieve brevity by removing navigation layer
 
 ## Finish A Pass
 
-A good pass produces:
+A good pass creates a verifiable result or reduces decision-relevant uncertainty. It also leaves:
 
-- a concrete output or verified result;
 - honest knowledge status where uncertainty remains;
 - an updated nearest segment or locally rebuilt basis when needed;
 - a clear first current action;
-- a provisional view of what follows;
-- less decision-relevant uncertainty than before.
+- a provisional view of what follows.
+
+Read sections 14-16 of `references/method.md` when checking stale material, false progress, or a recurring failure mode.
 
 Use the final check:
 
@@ -156,5 +164,3 @@ Is its completion result defined?
 Is its place in the provisional route visible?
 Are later stages still marked as provisional rather than promised?
 ```
-
-Read `references/method.md` when detailed definitions, transition logic, failure modes, or worked examples are needed.
