@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and reversibly group native Codex search discoveries.
+"""Validate and reversibly group native Codex or Antigravity search discoveries.
 
 The helper is deliberately mechanical: it performs no network access, page
 reading, relevance scoring, semantic deduplication, or evidence judgment.
@@ -19,6 +19,7 @@ from urllib.parse import unquote_plus, urlsplit
 
 SCHEMA_VERSION = "1.0"
 SEARCH_PURPOSES = {"primary", "repeat", "verify", "contrarian"}
+SEARCH_SURFACES = {"native_codex", "native_antigravity"}
 TRACKING_KEYS = {
     "dclid",
     "fbclid",
@@ -167,8 +168,9 @@ def validate_discovery(raw: Any, index: int) -> dict[str, Any]:
     if record["search_purpose"] not in SEARCH_PURPOSES:
         allowed = ", ".join(sorted(SEARCH_PURPOSES))
         raise ValidationError(f"{location}.search_purpose must be one of: {allowed}")
-    if record["search_surface"] != "native_codex":
-        raise ValidationError(f"{location}.search_surface must be 'native_codex' for this MVP helper")
+    if record["search_surface"] not in SEARCH_SURFACES:
+        allowed_surfaces = ", ".join(sorted(SEARCH_SURFACES))
+        raise ValidationError(f"{location}.search_surface must be one of: {allowed_surfaces}")
     if isinstance(record["search_round"], bool) or not isinstance(record["search_round"], int):
         raise ValidationError(f"{location}.search_round must be an integer")
     if record["search_round"] < 1:
@@ -322,7 +324,7 @@ def build_output(payload: Any) -> dict[str, Any]:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate and reversibly group native Codex search discoveries."
+        description="Validate and reversibly group native Codex or Antigravity search discoveries."
     )
     parser.add_argument(
         "input",

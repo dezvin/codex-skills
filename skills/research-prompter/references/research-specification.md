@@ -32,12 +32,16 @@ The entrypoint owns the compact evidence core. Add only conditions relevant to t
 - Connect consequential claims to source content actually read and its applicable context.
 - Distinguish observation, a source's claim, interpretation, and inference when the difference affects the conclusion.
 - Prefer suitable direct grounds; official or academic status alone does not establish every claim.
-- Trace origin and independence. Reprints or summaries of one study are not additional corroboration.
-- Test alternative explanations and counterevidence for evaluative or causal work.
+- Trace origin and independence, including material supplied by the user. Reprints, summaries, or reformulations of the same material are not additional corroboration.
+- Test alternative explanations and counterevidence for evaluative or causal work and conclusions that would exclude a material option, group, or explanation.
 - Compare definitions, periods, populations, methods, and conditions before treating statements as contradictory.
 - Explain the grounds limiting a conclusion rather than decorating it with a numerical confidence score.
 - Do not infer prevalence or market size from unrepresentative signals.
 - Separate local evidence from analogies and state material limits of transfer.
+
+When supplied cases materially influence the conclusion, require the researcher to preserve their origin. Retelling a user's case, observation, or conclusion does not make it independently discovered external evidence. A new citation supports only the claim its content actually establishes, not the entire adjacent episode. Added motives, actions, outcomes, or numbers need their own grounds; otherwise keep them as a distinct hypothesis, not part of the known case. Do not require a separate ledger, an identifier for every line, or status labels on every sentence.
+
+For a consequential exclusion, require grounds for that exclusion and their scope, material competing explanations, and a distinction between not found, not investigated, and a supported negative result. If the question remains open, identify evidence that could change the conclusion. Do not impose equal counts of support and refutations, source quotas, or an obligation to retain refuted options.
 
 Select sources by competence for the claim. Personal experience may directly support an account of experience; product documentation may establish a product's terms; prevalence needs an appropriate population and method. These examples do not prescribe a search sequence or fixed source hierarchy.
 
@@ -49,6 +53,17 @@ One defining document may suffice for a fact. Many agreeing publications do not 
 
 Investigate a working hypothesis without requiring the desired answer. Preserve an accepted product boundary. If its factual premise is disputed, investigate that premise rather than silently inviting the researcher to replace the owner's decision.
 
+For open exploration or expansion of an existing picture, specify this methodological order:
+
+1. Independently seek material situations, options, and explanations within the agreed scope, without treating the supplied examples as an exhaustive set.
+2. Form a preliminary picture from the external material, then compare it with the supplied cases and conclusions.
+3. Show independent support, new distinctions, contradictions, and consequential coverage gaps.
+4. Base comparative judgments and recommendations on that comparison; do not use presumed attractiveness to stop considering a material option before examining its grounds.
+
+Initial context is available from the start and can guide questions. This is not blind research or a requirement to ignore prior work. It prevents checking familiar examples from replacing an independent external contribution.
+
+For a narrow check, a specified set of alternatives, or a fixed corpus, preserve the established boundary. Do not require other markets, groups, or solutions; examine provenance and competing explanations within the task. A missing external finding does not authorize expanding a binding scope.
+
 When the user explicitly requests arguments for one side, reflect the limited purpose transparently. Do not replace it with a different assignment or present the selective collection as an independent verdict.
 
 A named applicable methodology may determine questions, inclusion criteria, data, and limitations. Use subject competence, but do not declare an unverified method a generally accepted standard. Specialized frameworks such as JTBD, clinical review, or legal due diligence apply only when the task or context warrants them; they are not universal blocks or bundled domain packs. An unknown field's methodology can itself be a research question.
@@ -57,10 +72,10 @@ A named applicable methodology may determine questions, inclusion criteria, data
 
 | Intended contribution | Request when material |
 | --- | --- |
-| Orientation in a new field | Main approaches and distinctions, nature of evidence, consequential unknowns and useful directions; do not predefine the entire field. |
+| Orientation in a new field | Main approaches and distinctions, nature of evidence, consequential unknowns and useful directions; distinguish external findings from supplied examples without predefining the entire field. |
 | Comparison for a decision | Comparable criteria, applicability, trade-offs and evidential limits; do not preselect a winner. |
 | Hypothesis or causal explanation | Support, refutations, alternatives and the strength of conclusion actually permitted. |
-| Enrichment or update | What was supplied, confirmed, changed, refuted, or remains unknown; separate new external contribution from the baseline. |
+| Enrichment or update | What was supplied, independently supported, changed, refuted, or remains unknown; separate new external contribution from the baseline, including cases supplied as ordinary narrative. |
 | Material for further analysis | Verifiable findings linked to interpretations, provenance and limitations that survive synthesis. |
 | Data for processing | Required fields, units, dates, origin and explicit semantics of missing values; use a strict schema when the consumer needs it. |
 | Bounded inventory | Object set, inclusion / exclusion criteria, demonstrable coverage and limits. |
@@ -69,9 +84,9 @@ Use narrative, tables, JSON, or another requested format according to use. Do no
 
 For "find everything," recover a meaningful set boundary. If unavailable, clarify a consequential user choice or define an explicitly bounded investigation; do not promise absolute completeness of the open web.
 
-Sufficiency for comparison can mean comparable treatment of essential criteria with visible gaps. For exploration, it can mean a useful map of main directions, contradictions, and unknowns without claiming exhaustion of the field. An inventory needs its own inclusion boundary.
+Sufficiency for comparison can mean comparable treatment of essential criteria with visible gaps. For exploration, it can mean a useful map of main directions, contradictions, and unknowns without claiming exhaustion of the field. For exploration or enrichment, request consequential coverage gaps and the actual contribution beyond the baseline. New names for groups or options do not establish expansion without a material distinction, grounds, or an explicitly identified hypothesis. No new findings does not prove that the original picture was complete. An inventory needs its own inclusion boundary.
 
-When justified, a final self-check should look for consequential uncovered questions, weak grounds, boundary violations, and missing alternatives before the researcher's final answer. It may retain an honestly unresolved question. Do not require searching indefinitely until every cell is filled.
+When justified, a final self-check should look for consequential uncovered questions, weak grounds, boundary violations, missing alternatives, substitution of a baseline retelling for research, and unsupported closure of material directions before the researcher's final answer. It may retain an honestly unresolved question. Do not require a separate report chapter or searching indefinitely until every cell is filled.
 
 ## Leave Search Tactics To The Researcher
 

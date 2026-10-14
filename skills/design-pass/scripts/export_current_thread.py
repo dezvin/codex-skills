@@ -12,12 +12,13 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 
 EXPORT_PREFIX = "codex-thread-export-"
+ANTIGRAVITY_EXPORT_PREFIX = "antigravity-conversation-export-"
 TEMP_SUBDIR = "codex-thread-exports"
 ALLOWED_RESPONSE_ITEMS = {
     "message",
@@ -146,7 +147,8 @@ def filename_thread_id(path: Path) -> str | None:
 
 
 def verified_thread_id(path: Path, records: list[dict[str, Any]]) -> str | None:
-    return session_meta_id(records) or filename_thread_id(path)
+    del path  # A filename is only a discovery hint, never proof of thread identity.
+    return session_meta_id(records)
 
 
 def rollout_roots(include_archived: bool) -> list[Path]:
@@ -156,22 +158,148 @@ def rollout_roots(include_archived: bool) -> list[Path]:
     return [root for root in roots if root.exists()]
 
 
-def find_rollout(thread_id: str, include_archived: bool) -> Path:
+def record_time_bounds(records: list[dict[str, Any]]) -> tuple[str | None, str | None]:
+    timestamps = [str(record["timestamp"]) for record in records if record.get("timestamp")]
+    if not timestamps:
+        return None, None
+    return timestamps[0], timestamps[-1]
+
+
+def timestamp_sort_value(value: str | None) -> float:
+    if not value:
+        return math.inf
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.timestamp()
+    except ValueError:
+        return math.inf
+
+
+def candidate_failure(path: Path, reason: str, **details: Any) -> dict[str, Any]:
+    failure: dict[str, Any] = {"path": str(path), "reason": reason}
+    failure.update({key: value for key, value in details.items() if value is not None})
+    return failure
+
+
+def rollout_source(
+    path: Path,
+    records: list[dict[str, Any]],
+    invalid_line_count: int,
+) -> dict[str, Any]:
+    first_timestamp, last_timestamp = record_time_bounds(records)
+    return {
+        "path": path,
+        "records": records,
+        "invalid_line_count": invalid_line_count,
+        "first_timestamp": first_timestamp,
+        "last_timestamp": last_timestamp,
+    }
+
+
+def discover_rollouts(
+    thread_id: str,
+    include_archived: bool,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     candidates: list[Path] = []
     for root in rollout_roots(include_archived):
         candidates.extend(root.rglob("rollout-*.jsonl"))
 
-    ordered = sorted(candidates, key=lambda path: path.stat().st_mtime, reverse=True)
-    filename_matches = [path for path in ordered if filename_thread_id(path) == thread_id]
-    remaining = [path for path in ordered if path not in filename_matches]
-    for path in [*filename_matches, *remaining]:
+    sources: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    for path in sorted(set(candidates), key=lambda item: str(item).casefold()):
+        filename_match = filename_thread_id(path) == thread_id
         try:
-            records, _ = read_jsonl(path)
-        except (OSError, UnicodeDecodeError):
+            records, invalid_line_count = read_jsonl(path)
+        except (OSError, UnicodeDecodeError) as exc:
+            if filename_match:
+                failures.append(candidate_failure(path, "read_error", detail=str(exc)))
             continue
-        if verified_thread_id(path, records) == thread_id:
-            return path
-    raise FileNotFoundError(f"Could not find a verified Codex rollout for thread id {thread_id}")
+
+        internal_thread_id = session_meta_id(records)
+        if internal_thread_id != thread_id:
+            if filename_match:
+                failures.append(
+                    candidate_failure(
+                        path,
+                        "thread_id_mismatch" if internal_thread_id else "missing_session_meta_thread_id",
+                        observed_thread_id=internal_thread_id,
+                    )
+                )
+            continue
+
+        if not records:
+            failures.append(candidate_failure(path, "no_readable_records"))
+            continue
+
+        source = rollout_source(path, records, invalid_line_count)
+        sources.append(source)
+        if invalid_line_count:
+            failures.append(
+                candidate_failure(
+                    path,
+                    "unreadable_jsonl_lines",
+                    invalid_line_count=invalid_line_count,
+                )
+            )
+        if source["first_timestamp"] is None:
+            failures.append(candidate_failure(path, "missing_event_timestamp"))
+
+    if not sources:
+        raise FileNotFoundError(f"Could not find a verified Codex rollout for thread id {thread_id}")
+
+    sources.sort(
+        key=lambda source: (
+            timestamp_sort_value(source["first_timestamp"]),
+            str(source["path"]).casefold(),
+        )
+    )
+    return sources, failures
+
+
+def load_explicit_rollout(
+    path: Path,
+    thread_id: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if not path.exists():
+        raise FileNotFoundError(f"Rollout file does not exist: {path}")
+    records, invalid_line_count = read_jsonl(path)
+    if not records:
+        raise RuntimeError(f"No readable JSONL records found in {path}")
+    internal_thread_id = verified_thread_id(path, records)
+    if internal_thread_id != thread_id:
+        raise RuntimeError(
+            f"Rollout id mismatch: expected {thread_id}, got {internal_thread_id or 'unverified'}"
+        )
+    failures: list[dict[str, Any]] = []
+    if invalid_line_count:
+        failures.append(
+            candidate_failure(
+                path,
+                "unreadable_jsonl_lines",
+                invalid_line_count=invalid_line_count,
+            )
+        )
+    return [rollout_source(path, records, invalid_line_count)], failures
+
+
+def merge_rollout_records(
+    sources: list[dict[str, Any]],
+    replayed_user_records: set[tuple[str, int]],
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    for source_index, source in enumerate(sources, start=1):
+        source_path = str(source["path"])
+        for record in source["records"]:
+            annotated = dict(record)
+            annotated["_source_rollout"] = source_path
+            annotated["_source_rollout_index"] = source_index
+            key = (source_path, int(record.get("_source_line") or 0))
+            if key in replayed_user_records:
+                annotated["_collapse_replayed_user"] = True
+            merged.append(annotated)
+    return merged
 
 
 def is_binary_node(value: dict[str, Any]) -> bool:
@@ -689,6 +817,155 @@ def message_body(
     return "\n\n".join(parts), removed, injected_removed
 
 
+def message_turn_id(payload: dict[str, Any]) -> str | None:
+    metadata = payload.get("internal_chat_message_metadata_passthrough")
+    if not isinstance(metadata, dict) or not metadata.get("turn_id"):
+        return None
+    return str(metadata["turn_id"])
+
+
+def canonical_replay_body(record: dict[str, Any]) -> str | None:
+    payload = record.get("payload")
+    if (
+        record.get("type") != "response_item"
+        or not isinstance(payload, dict)
+        or payload.get("type") != "message"
+        or payload.get("role") != "user"
+    ):
+        return None
+    body, _, _ = message_body(payload, omit_injected_user_parts=True)
+    normalized = body.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
+    return normalized if normalized else None
+
+
+def substantive_user_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [record for record in records if canonical_replay_body(record) is not None]
+
+
+def turn_is_structurally_unfinished(
+    records: list[dict[str, Any]],
+    user_record: dict[str, Any],
+) -> bool:
+    payload = user_record.get("payload")
+    if not isinstance(payload, dict):
+        return False
+    turn_id = message_turn_id(payload)
+    if not turn_id:
+        return False
+
+    try:
+        user_index = records.index(user_record)
+    except ValueError:
+        return False
+
+    turn_was_observed = False
+    for record in records:
+        record_payload = record.get("payload")
+        if not isinstance(record_payload, dict):
+            continue
+        if str(record_payload.get("turn_id") or "") == turn_id and (
+            record.get("type") == "turn_context"
+            or (
+                record.get("type") == "event_msg"
+                and record_payload.get("type") == "task_started"
+            )
+        ):
+            turn_was_observed = True
+            break
+    if not turn_was_observed:
+        return False
+
+    for record in records[user_index + 1 :]:
+        record_payload = record.get("payload")
+        if not isinstance(record_payload, dict):
+            continue
+        if record.get("type") != "response_item" or record_payload.get("type") != "message":
+            continue
+        role = record_payload.get("role")
+        if role == "user" and canonical_replay_body(record) is not None:
+            return False
+        if role != "assistant":
+            continue
+        phase = str(record_payload.get("phase") or "")
+        assistant_turn_id = message_turn_id(record_payload)
+        if phase == "final_answer":
+            return False
+        if assistant_turn_id == turn_id and phase not in {"commentary"}:
+            return False
+    return True
+
+
+def begins_with_replayed_user_message(
+    records: list[dict[str, Any]],
+    expected_body: str,
+) -> dict[str, Any] | None:
+    for record in records:
+        payload = record.get("payload")
+        if record.get("type") != "response_item" or not isinstance(payload, dict):
+            continue
+        if payload.get("type") != "message":
+            continue
+        role = payload.get("role")
+        if role == "user":
+            body = canonical_replay_body(record)
+            if body is None:
+                continue
+            return record if body == expected_body else None
+        if role == "assistant":
+            return None
+    return None
+
+
+def proven_rollout_replays(
+    sources: list[dict[str, Any]],
+) -> set[tuple[str, int]]:
+    replayed: set[tuple[str, int]] = set()
+    for previous, current in zip(sources, sources[1:]):
+        previous_users = substantive_user_records(previous["records"])
+        if not previous_users:
+            continue
+        previous_user = previous_users[-1]
+        previous_body = canonical_replay_body(previous_user)
+        if previous_body is None or not turn_is_structurally_unfinished(
+            previous["records"], previous_user
+        ):
+            continue
+
+        current_user = begins_with_replayed_user_message(current["records"], previous_body)
+        if current_user is None:
+            continue
+        previous_payload = previous_user.get("payload")
+        current_payload = current_user.get("payload")
+        if not isinstance(previous_payload, dict) or not isinstance(current_payload, dict):
+            continue
+        previous_turn_id = message_turn_id(previous_payload)
+        current_turn_id = message_turn_id(current_payload)
+        if not previous_turn_id or not current_turn_id or previous_turn_id == current_turn_id:
+            continue
+        current_turn_observed = any(
+            isinstance(record.get("payload"), dict)
+            and str(record["payload"].get("turn_id") or "") == current_turn_id
+            and (
+                record.get("type") == "turn_context"
+                or (
+                    record.get("type") == "event_msg"
+                    and record["payload"].get("type") == "task_started"
+                )
+            )
+            for record in current["records"]
+        )
+        if not current_turn_observed:
+            continue
+
+        replayed.add(
+            (
+                str(current["path"]),
+                int(current_user.get("_source_line") or 0),
+            )
+        )
+    return replayed
+
+
 def event_key(kind: str, payload: dict[str, Any]) -> tuple[str, str] | None:
     identifier = payload.get("id")
     if not identifier and kind in {
@@ -767,6 +1044,11 @@ def response_event(
     if kind == "message" and not body.strip() and injected_count:
         excluded["empty_after_injected_content_removal"] += 1
         return None
+    if full:
+        if record.get("_source_rollout"):
+            attrs["source_rollout"] = record["_source_rollout"]
+        if record.get("_source_line"):
+            attrs["source_line"] = record["_source_line"]
     return {
         "timestamp": timestamp,
         "label": label,
@@ -791,10 +1073,16 @@ def technical_event(record: dict[str, Any], *, full: bool) -> dict[str, Any] | N
         return None
     selected = {key: payload[key] for key in fields if payload.get(key) is not None}
     body = json.dumps(selected, ensure_ascii=False, indent=2, sort_keys=True) if selected else ""
+    attrs: dict[str, Any] = {}
+    if full:
+        if record.get("_source_rollout"):
+            attrs["source_rollout"] = record["_source_rollout"]
+        if record.get("_source_line"):
+            attrs["source_line"] = record["_source_line"]
     return {
         "timestamp": str(record.get("timestamp") or ""),
         "label": f"TECHNICAL EVENT: {kind}" if full else "CONTEXT COMPACTED",
-        "attrs": {},
+        "attrs": attrs,
         "body": body,
         "dedupe_key": None,
         "kind": f"event_msg:{kind}",
@@ -872,6 +1160,20 @@ def collect_transcript_events(
                 excluded["malformed_response_item"] += 1
                 continue
             kind = str(payload.get("type") or "")
+            if record.get("_collapse_replayed_user"):
+                flush_file_reads()
+                events.append(
+                    {
+                        "timestamp": str(record.get("timestamp") or ""),
+                        "label": "ROLLOUT RESUMED",
+                        "attrs": {},
+                        "body": "",
+                        "kind": "rollout_resumed_marker",
+                    }
+                )
+                included["rollout_resumed_marker"] += 1
+                excluded["proven_replayed_user_message"] += 1
+                continue
             if kind in {"custom_tool_call", "function_call"}:
                 call_id = str(payload.get("call_id") or "")
                 argument_key = "input" if kind == "custom_tool_call" else "arguments"
@@ -1055,7 +1357,12 @@ def safe_filename(value: str) -> str:
 def build_export_text(
     *,
     thread_id: str,
-    rollout_path: Path,
+    rollout_paths: list[Path],
+    coverage_status: str,
+    candidate_failures: list[dict[str, Any]],
+    first_event_timestamp: str | None,
+    last_event_timestamp: str | None,
+    message_count: int,
     events: list[dict[str, Any]],
     included: Counter[str],
     excluded: Counter[str],
@@ -1066,11 +1373,28 @@ def build_export_text(
     pair_complete: bool | None = None,
     missing_parts: list[str] | None = None,
 ) -> str:
+    source_lines = [f"Sources ({len(rollout_paths)}):"]
+    source_lines.extend(f"- {path}" for path in rollout_paths)
+    coverage_lines = [
+        f"Coverage status: {coverage_status}",
+        f"Messages: {message_count}",
+        f"First event timestamp: {first_event_timestamp or 'unavailable'}",
+        f"Last event timestamp: {last_event_timestamp or 'unavailable'}",
+        *source_lines,
+    ]
+    if candidate_failures:
+        coverage_lines.extend(
+            [
+                f"Candidate failures ({len(candidate_failures)}):",
+                json.dumps(candidate_failures, ensure_ascii=False, indent=2, sort_keys=True),
+            ]
+        )
+
     if not full:
         lines = [
             "Codex conversation recovery transcript",
             f"Thread ID: {thread_id}",
-            f"Source: {rollout_path}",
+            *coverage_lines,
             f"Exported: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "Coverage: user, assistant, and subagent messages; context-compaction markers; "
             "and confirmed file reads placed where they occurred.",
@@ -1109,7 +1433,7 @@ def build_export_text(
     lines = [
         title,
         f"Thread ID: {thread_id}",
-        f"Source: {rollout_path}",
+        *coverage_lines,
         f"Exported: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"Events: {len(events)}",
         f"Coverage: {coverage}",
@@ -1173,7 +1497,8 @@ def create_output_path(thread_id: str, temporary: bool, output_dir: Path) -> Pat
 def cleanup_export(raw_path: str) -> dict[str, Any]:
     path = Path(raw_path).expanduser().resolve()
     temp_root = temporary_output_dir().resolve()
-    if path.parent != temp_root or not path.name.startswith(EXPORT_PREFIX) or path.suffix != ".txt":
+    allowed_prefix = path.name.startswith(EXPORT_PREFIX) or path.name.startswith(ANTIGRAVITY_EXPORT_PREFIX)
+    if path.parent != temp_root or not allowed_prefix or path.suffix != ".txt":
         raise RuntimeError(f"Refusing to delete a path outside the managed temporary export directory: {path}")
     if not path.exists():
         return {"ok": True, "deleted": False, "output_path": str(path), "reason": "already_missing"}
@@ -1186,15 +1511,25 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
     if not thread_id:
         raise RuntimeError("CODEX_THREAD_ID is unavailable; the current Codex thread cannot be identified safely")
 
-    rollout_path = Path(args.rollout).expanduser() if args.rollout else find_rollout(thread_id, args.include_archived)
-    if not rollout_path.exists():
-        raise FileNotFoundError(f"Rollout file does not exist: {rollout_path}")
-    records, invalid_line_count = read_jsonl(rollout_path)
+    explicit_rollout = bool(args.rollout)
+    if explicit_rollout:
+        sources, candidate_failures = load_explicit_rollout(
+            Path(args.rollout).expanduser(),
+            thread_id,
+        )
+        coverage_status = "single_rollout"
+    else:
+        sources, candidate_failures = discover_rollouts(thread_id, args.include_archived)
+        coverage_status = "partial_thread" if candidate_failures else "complete_thread"
+
+    replayed_user_records = proven_rollout_replays(sources)
+    records = merge_rollout_records(sources, replayed_user_records)
     if not records:
-        raise RuntimeError(f"No readable JSONL records found in {rollout_path}")
-    record_thread_id = verified_thread_id(rollout_path, records)
-    if record_thread_id != thread_id:
-        raise RuntimeError(f"Rollout id mismatch: expected {thread_id}, got {record_thread_id or 'unverified'}")
+        raise RuntimeError("No readable JSONL records found in the verified rollout set")
+
+    rollout_paths = [Path(source["path"]) for source in sources]
+    invalid_line_count = sum(int(source["invalid_line_count"]) for source in sources)
+    first_event_timestamp, last_event_timestamp = record_time_bounds(records)
 
     extracted_call_id = args.extract_call
     full = bool(args.full or extracted_call_id)
@@ -1205,7 +1540,8 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
     else:
         events, included, excluded = collect_events(records, full=full)
     if not events:
-        raise RuntimeError(f"No supported observable work events found in {rollout_path}")
+        raise RuntimeError("No supported observable work events found in the verified rollout set")
+    message_count = sum(event["kind"] in {"message", "agent_message"} for event in events)
 
     if args.temporary:
         if args.output_dir:
@@ -1217,7 +1553,12 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
     output_path = create_output_path(thread_id, args.temporary, out_dir)
     content = build_export_text(
         thread_id=thread_id,
-        rollout_path=rollout_path,
+        rollout_paths=rollout_paths,
+        coverage_status=coverage_status,
+        candidate_failures=candidate_failures,
+        first_event_timestamp=first_event_timestamp,
+        last_event_timestamp=last_event_timestamp,
+        message_count=message_count,
         events=events,
         included=included,
         excluded=excluded,
@@ -1237,7 +1578,14 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
         "export_kind": "call_details" if extracted_call_id else ("full" if full else "transcript"),
         "extracted_call_id": extracted_call_id,
         "thread_id": thread_id,
-        "rollout_path": str(rollout_path),
+        "coverage_status": coverage_status,
+        "rollout_count": len(rollout_paths),
+        "rollout_paths": [str(path) for path in rollout_paths],
+        "rollout_path": str(rollout_paths[0]) if len(rollout_paths) == 1 else None,
+        "candidate_failures": candidate_failures,
+        "first_event_timestamp": first_event_timestamp,
+        "last_event_timestamp": last_event_timestamp,
+        "message_count": message_count,
         "output_path": str(output_path),
         "output_location": out_location,
         "event_count": len(events),
@@ -1248,13 +1596,19 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
         "character_count": char_count,
         "estimated_token_count": math.ceil(char_count / 4),
         "coverage_warning": (
-            (
-                "The recovery transcript preserves messages and confirmed file-read markers in their "
-                "chronological positions. Other tool calls and all tool results are omitted; request a full "
-                "technical export when those details are required."
-                if not full
-                else "The export preserves supported observable work but deterministically excludes "
-                "system/developer messages, hidden reasoning, unknown internal records, and typed binary content."
+            "The export is partial because one or more rollout candidates could not be read or included."
+            if coverage_status == "partial_thread"
+            else (
+                "This export intentionally covers one explicitly selected rollout, not the complete thread."
+                if coverage_status == "single_rollout"
+                else (
+                    "The recovery transcript preserves messages and confirmed file-read markers in their "
+                    "chronological positions. Other tool calls and all tool results are omitted; request a full "
+                    "technical export when those details are required."
+                    if not full
+                    else "The export preserves supported observable work but deterministically excludes "
+                    "system/developer messages, hidden reasoning, unknown internal records, and typed binary content."
+                )
             )
         ),
     }
@@ -1264,13 +1618,412 @@ def export_thread(args: argparse.Namespace) -> dict[str, Any]:
     return result
 
 
+
+ANTIGRAVITY_EXPORT_PREFIX = "antigravity-conversation-export-"
+
+
+def antigravity_app_data_dir() -> Path:
+    raw = os.environ.get("ANTIGRAVITY_APP_DATA_DIR")
+    if raw:
+        return Path(raw).expanduser()
+    return Path.home() / ".gemini" / "antigravity"
+
+
+def antigravity_conversation_id(args: argparse.Namespace) -> str | None:
+    if args.thread_id:
+        return args.thread_id
+    return os.environ.get("ANTIGRAVITY_CONVERSATION_ID")
+
+
+def discover_antigravity_log(conv_id: str) -> tuple[Path, bool]:
+    log_dir = antigravity_app_data_dir() / "brain" / conv_id / ".system_generated" / "logs"
+    full_log = log_dir / "transcript_full.jsonl"
+    compact_log = log_dir / "transcript.jsonl"
+    if full_log.exists():
+        return full_log, True
+    if compact_log.exists():
+        return compact_log, False
+    raise FileNotFoundError(f"No transcript found for Antigravity conversation {conv_id} in {log_dir}")
+
+
+def extract_antigravity_user_request(text: str) -> tuple[str, str | None]:
+    context_summary = None
+    summary_match = re.search(r"<CONTEXT_SUMMARY>(.*?)</CONTEXT_SUMMARY>", text, re.DOTALL)
+    if summary_match:
+        context_summary = summary_match.group(1).strip()
+
+    req_match = re.search(r"<USER_REQUEST>(.*?)</USER_REQUEST>", text, re.DOTALL)
+    if req_match:
+        return req_match.group(1).strip(), context_summary
+
+    cleaned = text
+    if summary_match:
+        cleaned = cleaned.replace(summary_match.group(0), "")
+
+    strip_tags = [
+        "ADDITIONAL_METADATA",
+        "USER_SETTINGS_CHANGE",
+        "SUBAGENT_NOTIFICATION",
+        "identity",
+        "user_rules",
+        "skills",
+        "subagents",
+        "artifacts",
+        "conversation_transcript",
+    ]
+    for tag in strip_tags:
+        cleaned = re.sub(rf"<{tag}>.*?</{tag}>", "", cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r"<RULE\[.*?\]>.*?</RULE\[.*?\]>", "", cleaned, flags=re.DOTALL)
+    return cleaned.strip(), context_summary
+
+
+def collect_antigravity_events(
+    records: list[dict[str, Any]],
+    *,
+    with_thinking: bool,
+    full: bool,
+) -> tuple[list[dict[str, Any]], Counter[str], Counter[str]]:
+    events: list[dict[str, Any]] = []
+    included: Counter[str] = Counter()
+    excluded: Counter[str] = Counter()
+
+    pending_file_reads: list[str] = []
+    pending_url_reads: list[str] = []
+
+    def flush_reads() -> None:
+        if pending_file_reads:
+            seen: set[str] = set()
+            unique_paths: list[str] = []
+            for p in pending_file_reads:
+                norm = normalize_path_literal(p)
+                if norm not in seen:
+                    seen.add(norm)
+                    unique_paths.append(norm)
+            if len(unique_paths) == 1:
+                events.append({"label": "FILE READ", "body": unique_paths[0], "timestamp": None, "attrs": {}})
+            else:
+                events.append({"label": "FILES READ", "body": "\n".join(f"- {p}" for p in unique_paths), "timestamp": None, "attrs": {}})
+            included["file_read_marker"] += len(unique_paths)
+            pending_file_reads.clear()
+
+        if pending_url_reads:
+            seen_u: set[str] = set()
+            unique_urls: list[str] = []
+            for u in pending_url_reads:
+                u_str = u.strip().strip("\"'")
+                if u_str not in seen_u:
+                    seen_u.add(u_str)
+                    unique_urls.append(u_str)
+            if len(unique_urls) == 1:
+                events.append({"label": "URL READ", "body": unique_urls[0], "timestamp": None, "attrs": {}})
+            else:
+                events.append({"label": "URLS READ", "body": "\n".join(f"- {u}" for u in unique_urls), "timestamp": None, "attrs": {}})
+            included["url_read_marker"] += len(unique_urls)
+            pending_url_reads.clear()
+
+    for data in records:
+        step_idx = data.get("step_index")
+        step_type = str(data.get("type") or "")
+        created_at = str(data.get("created_at") or "")
+
+        if full:
+            if step_type == "USER_INPUT":
+                raw = str(data.get("content") or "")
+                _, summary = extract_antigravity_user_request(raw)
+                if summary:
+                    events.append({"label": "CONTEXT COMPACTED: SUMMARY", "body": summary, "timestamp": created_at, "attrs": {"step": step_idx}})
+                    included["context_compacted"] += 1
+                events.append({"label": "USER MESSAGE", "body": raw, "timestamp": created_at, "attrs": {"step": step_idx}})
+                included["user_message"] += 1
+            elif step_type == "PLANNER_RESPONSE":
+                if data.get("thinking"):
+                    events.append({"label": "THINKING", "body": str(data["thinking"]), "timestamp": created_at, "attrs": {"step": step_idx}})
+                    included["thinking"] += 1
+                for tc in data.get("tool_calls", []):
+                    tc_name = tc.get("name")
+                    events.append({
+                        "label": f"TOOL CALL: {tc_name}",
+                        "body": json.dumps(tc.get("args", {}), ensure_ascii=False, indent=2),
+                        "timestamp": created_at,
+                        "attrs": {"step": step_idx},
+                    })
+                    included[f"tool_call:{tc_name}"] += 1
+                if data.get("content"):
+                    events.append({"label": "ASSISTANT MESSAGE", "body": str(data["content"]), "timestamp": created_at, "attrs": {"step": step_idx}})
+                    included["assistant_message"] += 1
+            elif step_type == "GENERIC":
+                events.append({"label": "TOOL RESULT", "body": str(data.get("content") or ""), "timestamp": created_at, "attrs": {"step": step_idx}})
+                included["tool_result"] += 1
+            elif step_type == "SYSTEM_MESSAGE":
+                events.append({"label": "SYSTEM MESSAGE", "body": str(data.get("content") or ""), "timestamp": created_at, "attrs": {"step": step_idx}})
+                included["system_message"] += 1
+            elif step_type == "ERROR_MESSAGE":
+                events.append({"label": "ERROR MESSAGE", "body": str(data.get("error") or ""), "timestamp": created_at, "attrs": {"step": step_idx}})
+                included["error_message"] += 1
+            else:
+                excluded[f"step_type:{step_type}"] += 1
+            continue
+
+        # Default Recovery Transcript mode
+        if step_type == "USER_INPUT":
+            flush_reads()
+            raw = str(data.get("content") or "")
+            clean_req, summary = extract_antigravity_user_request(raw)
+            if summary:
+                events.append({"label": "CONTEXT COMPACTED: SUMMARY", "body": summary, "timestamp": created_at, "attrs": {}})
+                included["context_compacted"] += 1
+            if clean_req:
+                events.append({"label": "USER MESSAGE", "body": clean_req, "timestamp": created_at, "attrs": {}})
+                included["user_message"] += 1
+            else:
+                excluded["empty_user_message"] += 1
+
+        elif step_type == "PLANNER_RESPONSE":
+            for tc in data.get("tool_calls", []):
+                name = tc.get("name")
+                args = tc.get("args", {})
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except Exception:
+                        pass
+                if name == "view_file":
+                    p = args.get("AbsolutePath") or args.get("path")
+                    if p:
+                        pending_file_reads.append(str(p))
+                elif name == "read_url_content":
+                    u = args.get("Url") or args.get("url")
+                    if u:
+                        pending_url_reads.append(str(u))
+                else:
+                    excluded[f"tool_call:{name}"] += 1
+
+            if with_thinking and data.get("thinking"):
+                flush_reads()
+                events.append({"label": "THINKING", "body": str(data["thinking"]).strip(), "timestamp": created_at, "attrs": {}})
+                included["thinking"] += 1
+
+            if data.get("content") and str(data["content"]).strip():
+                flush_reads()
+                events.append({"label": "ASSISTANT MESSAGE", "body": str(data["content"]).strip(), "timestamp": created_at, "attrs": {}})
+                included["assistant_message"] += 1
+
+        elif step_type == "SYSTEM_MESSAGE":
+            content = str(data.get("content") or "")
+            match = re.search(r"sender=([^\s]+)", content)
+            if match:
+                sender = match.group(1)
+                if "/task-" in sender or sender.lower() == "system":
+                    excluded["system_message_noise"] += 1
+                else:
+                    flush_reads()
+                    sub_match = re.search(r"content=(.*)", content, re.DOTALL)
+                    sub_body = sub_match.group(1).strip() if sub_match else content
+                    events.append({"label": f"SUBAGENT MESSAGE (sender: {sender})", "body": sub_body, "timestamp": created_at, "attrs": {}})
+                    included["subagent_message"] += 1
+            else:
+                excluded["system_message_noise"] += 1
+        else:
+            excluded[f"step_type:{step_type}"] += 1
+
+    flush_reads()
+    return events, included, excluded
+
+
+def build_antigravity_export_text(
+    conv_id: str,
+    log_path: Path,
+    events: list[dict[str, Any]],
+    included: Counter[str],
+    excluded: Counter[str],
+    *,
+    with_thinking: bool,
+    full: bool,
+) -> str:
+    timestamp_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    message_count = sum(1 for ev in events if "MESSAGE" in ev["label"])
+
+    first_ts = next((ev["timestamp"] for ev in events if ev.get("timestamp")), None)
+    last_ts = next((ev["timestamp"] for ev in reversed(events) if ev.get("timestamp")), None)
+
+    title = "Antigravity conversation full technical export" if full else "Antigravity conversation recovery transcript"
+    lines = [
+        title,
+        f"Conversation ID: {conv_id}",
+        "Coverage status: complete_conversation",
+        f"Messages: {message_count}",
+        f"First event timestamp: {first_ts or 'unavailable'}",
+        f"Last event timestamp: {last_ts or 'unavailable'}",
+        f"Source log: {log_path}",
+        f"Exported: {timestamp_now}",
+    ]
+    if not full:
+        lines.extend([
+            "Coverage: user, assistant, and subagent messages; context-compaction markers; "
+            "and confirmed file/URL reads placed where they occurred.",
+            f"Thinking reasoning blocks: {'included' if with_thinking else 'omitted'}.",
+            "Repeated chunk reads are collapsed only within the same interval between messages. "
+            "Other tool calls and raw tool outputs are omitted.",
+            "System messages, task manager notifications, and IDE UI metadata blocks are excluded.",
+            "No model-based summarization, relevance filtering, or semantic rewriting was applied.",
+            f"Included event counts: {json.dumps(dict(included), ensure_ascii=False, sort_keys=True)}",
+            "",
+        ])
+        for ev in events:
+            lines.append(f"[{ev['label']}]")
+            if ev.get("body"):
+                lines.append(ev["body"])
+            lines.append("")
+    else:
+        lines.extend([
+            f"Events: {len(events)}",
+            "Coverage: user and assistant messages, model thinking, all tool calls, raw tool results, "
+            "subagent messages, and system notifications.",
+            f"Included event counts: {json.dumps(dict(included), ensure_ascii=False, sort_keys=True)}",
+            f"Excluded event counts: {json.dumps(dict(excluded), ensure_ascii=False, sort_keys=True)}",
+            "",
+        ])
+        for idx, ev in enumerate(events, start=1):
+            ts = f"[{ev['timestamp']}]" if ev.get("timestamp") else ""
+            header = f"[{idx:06d}]{ts}[{ev['label']}]"
+            attrs = ev.get("attrs", {})
+            if attrs:
+                header += " " + " ".join(f"{k}={v}" for k, v in attrs.items())
+            lines.extend([header, ev.get("body", ""), ""])
+
+    return "\n".join(lines)
+
+
+def antigravity_persistent_output_dir(override: str | None = None) -> tuple[Path, str]:
+    if override:
+        path = Path(override).expanduser().resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path, "custom_output_dir"
+    cwd = Path.cwd().resolve()
+    if cwd.is_dir():
+        return cwd, "workspace_root"
+    desktop = Path.home() / "Desktop"
+    if desktop.is_dir():
+        return desktop, "desktop"
+    return temporary_output_dir(), "system_temp"
+
+
+def create_antigravity_output_path(conv_id: str, temporary: bool, output_dir: Path) -> Path:
+    if temporary:
+        descriptor, raw_path = tempfile.mkstemp(
+            prefix=ANTIGRAVITY_EXPORT_PREFIX,
+            suffix=".txt",
+            dir=output_dir,
+            text=True,
+        )
+        os.close(descriptor)
+        return Path(raw_path)
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    return output_dir / f"{ANTIGRAVITY_EXPORT_PREFIX}{safe_filename(conv_id)}-{timestamp}.txt"
+
+
+def export_antigravity_conversation(args: argparse.Namespace) -> dict[str, Any]:
+    conv_id = antigravity_conversation_id(args)
+    if not conv_id:
+        raise RuntimeError("ANTIGRAVITY_CONVERSATION_ID is unavailable; the current Antigravity conversation cannot be identified safely")
+
+    log_path, _ = discover_antigravity_log(conv_id)
+    records, invalid_line_count = read_jsonl(log_path)
+    if not records:
+        raise RuntimeError(f"No readable JSONL records found in Antigravity log: {log_path}")
+
+    full = bool(args.full)
+    with_thinking = bool(args.with_thinking)
+    events, included, excluded = collect_antigravity_events(records, with_thinking=with_thinking, full=full)
+    if not events:
+        raise RuntimeError("No supported observable conversation events found in the Antigravity log")
+
+    message_count = sum(1 for ev in events if "MESSAGE" in ev["label"])
+    first_ts = next((ev["timestamp"] for ev in events if ev.get("timestamp")), None)
+    last_ts = next((ev["timestamp"] for ev in reversed(events) if ev.get("timestamp")), None)
+
+    if args.temporary:
+        if args.output_dir:
+            raise RuntimeError("--output-dir cannot be combined with --temporary")
+        out_dir = temporary_output_dir()
+        out_location = "system_temp"
+    else:
+        out_dir, out_location = antigravity_persistent_output_dir(args.output_dir)
+
+    output_path = create_antigravity_output_path(conv_id, args.temporary, out_dir)
+    content = build_antigravity_export_text(
+        conv_id=conv_id,
+        log_path=log_path,
+        events=events,
+        included=included,
+        excluded=excluded,
+        with_thinking=with_thinking,
+        full=full,
+    )
+    output_path.write_text(content, encoding="utf-8", newline="\n")
+    byte_count = output_path.stat().st_size
+    char_count = len(content)
+
+    export_kind = "full" if full else ("transcript_with_thinking" if with_thinking else "transcript")
+    return {
+        "ok": True,
+        "host": "antigravity",
+        "temporary": bool(args.temporary),
+        "export_kind": export_kind,
+        "thread_id": conv_id,
+        "conversation_id": conv_id,
+        "coverage_status": "complete_conversation",
+        "log_path": str(log_path),
+        "first_event_timestamp": first_ts,
+        "last_event_timestamp": last_ts,
+        "message_count": message_count,
+        "output_path": str(output_path),
+        "output_location": out_location,
+        "event_count": len(events),
+        "included_record_counts": dict(included),
+        "excluded_record_counts": dict(excluded),
+        "skipped_invalid_records": invalid_line_count,
+        "byte_count": byte_count,
+        "character_count": char_count,
+        "estimated_token_count": math.ceil(char_count / 4),
+        "coverage_warning": (
+            "The recovery transcript preserves user, assistant, and subagent messages, context-compaction markers, "
+            "and confirmed file/URL reads in chronological order. Other tool calls and raw tool outputs are omitted; "
+            "request a full technical export when those details are required."
+            if not full
+            else "The full technical export preserves user and assistant messages, model thinking, all tool calls, "
+            "raw tool results, subagent messages, and system notifications from the verified log."
+        ),
+    }
+
+
+def detect_host(args: argparse.Namespace) -> str:
+    if args.rollout:
+        return "codex"
+    if args.thread_id:
+        conv_dir = antigravity_app_data_dir() / "brain" / args.thread_id / ".system_generated" / "logs"
+        if conv_dir.exists():
+            return "antigravity"
+        return "codex"
+    if os.environ.get("ANTIGRAVITY_CONVERSATION_ID") or os.environ.get("ANTIGRAVITY_AGENT"):
+        return "antigravity"
+    if os.environ.get("CODEX_THREAD_ID"):
+        return "codex"
+    return "unknown"
+
+
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Export observable work from the current Codex thread.")
-    parser.add_argument("--thread-id", help="Thread id; defaults to CODEX_THREAD_ID.")
-    parser.add_argument("--rollout", help="Specific rollout JSONL file to verify and read.")
+    parser = argparse.ArgumentParser(description="Export observable work from the current Codex thread or Antigravity conversation.")
+    parser.add_argument("--thread-id", help="Thread/conversation id; defaults to CODEX_THREAD_ID or ANTIGRAVITY_CONVERSATION_ID.")
+    parser.add_argument("--rollout", help="Specific rollout JSONL file to verify and read (Codex only).")
     parser.add_argument("--output-dir", help="Persistent output directory override.")
     parser.add_argument("--temporary", action="store_true", help="Create a managed temporary export.")
     parser.add_argument("--cleanup", metavar="PATH", help="Delete one managed temporary export and exit.")
+    parser.add_argument(
+        "--with-thinking",
+        action="store_true",
+        help="Include model thinking blocks in Antigravity recovery transcript (Antigravity only).",
+    )
     parser.add_argument(
         "--full",
         action="store_true",
@@ -1279,9 +2032,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--extract-call",
         metavar="CALL_ID",
-        help="Export supported sanitized tool records by Call ID and report whether the call/result pair is complete.",
+        help="Export supported sanitized tool records by Call ID (Codex only) and report whether the call/result pair is complete.",
     )
-    parser.add_argument("--include-archived", action="store_true", help="Also search archived sessions.")
+    parser.add_argument("--include-archived", action="store_true", help="Also search archived sessions (Codex only).")
     parser.add_argument("--json", action="store_true", help="Print a machine-readable JSON result.")
     return parser.parse_args()
 
@@ -1289,11 +2042,29 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        if args.cleanup and (args.full or args.extract_call):
-            raise RuntimeError("--cleanup cannot be combined with --full or --extract-call")
+        if args.cleanup and (args.full or args.extract_call or args.with_thinking):
+            raise RuntimeError("--cleanup cannot be combined with --full, --extract-call, or --with-thinking")
         if args.full and args.extract_call:
             raise RuntimeError("--full cannot be combined with --extract-call")
-        result = cleanup_export(args.cleanup) if args.cleanup else export_thread(args)
+        if args.cleanup:
+            result = cleanup_export(args.cleanup)
+        else:
+            host = detect_host(args)
+            if host == "antigravity":
+                if args.extract_call:
+                    raise RuntimeError("--extract-call is supported only for Codex rollouts")
+                if args.include_archived:
+                    raise RuntimeError("--include-archived is supported only for Codex sessions")
+                result = export_antigravity_conversation(args)
+            elif host == "codex":
+                if args.with_thinking:
+                    raise RuntimeError("--with-thinking is supported only for Antigravity conversations")
+                result = export_thread(args)
+            else:
+                raise RuntimeError(
+                    "Neither ANTIGRAVITY_CONVERSATION_ID nor CODEX_THREAD_ID is available; "
+                    "the current session cannot be identified safely."
+                )
     except Exception as exc:  # noqa: BLE001 - CLI must return concise structured failures.
         error = {"ok": False, "error": str(exc)}
         if args.json:

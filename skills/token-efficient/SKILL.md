@@ -67,6 +67,8 @@ If a deliberately simple artifact or recommendation has a known, decision-releva
 
 Do not merge or split artifacts merely to reduce apparent size or file count. Structure them by required role, authority, lifecycle, audience, and retrieval need.
 
+Allocate length and detail by decision value, risk, and reader need, not by structural symmetry. Keep low-impact parts brief; give controlling or high-stakes parts the space they need.
+
 Do not add hypothetical future needs, structural symmetry, generic best practices, optional improvements, or explanations of common knowledge.
 
 ## Write densely

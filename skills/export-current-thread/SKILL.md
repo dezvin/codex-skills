@@ -1,113 +1,90 @@
 ---
 name: export-current-thread
-description: Use this skill only when the user explicitly invokes $export-current-thread or directly asks to export or save the current Codex thread, conversation, chat, or session as a local txt file. Create a readable recovery transcript by default and offer a separate full command-and-result export only after the transcript is ready. Do not invoke implicitly for ordinary logging, summaries, handoffs, or unrelated file exports.
+description: Use this skill only when the user explicitly invokes $export-current-thread, /export-current-thread, or directly asks to export or save the current Codex thread or Antigravity conversation as a local txt file. Create a readable recovery transcript by default and offer a separate full command-and-result export only after the transcript is ready. Supports --with-thinking in Antigravity. Do not invoke implicitly for ordinary logging, summaries, handoffs, or unrelated file exports.
 ---
 
 # Export Current Thread
 
-Export the observable work from the current Codex thread to a persistent UTF-8
-`.txt` file. Keep the default file readable: preserve the conversation and mark
-confirmed file reads where they occurred, without copying other tool activity
-or tool results into it.
+Export the observable work from the current Codex thread or Antigravity conversation to a persistent UTF-8 `.txt` file. Keep the default file readable: preserve the conversation, context-compaction markers, and mark confirmed file/URL reads where they occurred, without copying other tool activity, thinking reasoning, or raw tool outputs into it.
 
-This skill is intentionally explicit-only because even a recovery transcript can
-contain private text, local paths, and project information.
+This skill is intentionally explicit-only because even a recovery transcript can contain private text, local paths, and project information.
+
+## Host Detection & Dual-Environment Support
+
+The skill automatically detects its runtime environment via process environment variables:
+- **Google Antigravity**: detected via `ANTIGRAVITY_CONVERSATION_ID` or `ANTIGRAVITY_AGENT`. Reads the conversation's canonical `transcript_full.jsonl` (or `transcript.jsonl`) under `~/.gemini/antigravity/brain/<id>/.system_generated/logs/`.
+- **OpenAI Codex**: detected via `CODEX_THREAD_ID`. Discovers and merges verified session rollout files under `~/.codex/sessions/`.
 
 ## Procedure
 
 1. Run the bundled script:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_current_thread.py" --json
+python "<skill-directory>\scripts\export_current_thread.py" --json
 ```
 
-2. If `python` is unavailable but `py` exists, run:
+Or run via the known platform paths:
+- In Antigravity: `python "$env:USERPROFILE\.gemini\config\skills\export-current-thread\scripts\export_current_thread.py" --json`
+- In Codex: `python "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_current_thread.py" --json`
 
-```powershell
-py "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_current_thread.py" --json
-```
+2. If `python` is unavailable but `py` exists, substitute `py`.
 
-3. Read the script result. It includes `ok`, `export_kind`, `output_path`,
-   `thread_id`, `rollout_path`, event counts, byte and character counts, and a
-   deterministic token estimate. Do not read the generated file unless the
-   user's request also requires analyzing it.
+3. Read the script result. `ok` means only that the command completed. Check `coverage_status` separately, together with timestamps, `message_count`, `output_path`, event counts, and estimated token counts. Do not read the generated file into chat context unless the user explicitly asks to analyze it.
 
-4. Tell the user that the recovery transcript is ready, link the file, and mention
-   the optional full journal only after successful creation:
+4. Link the generated file in chat using standard markdown with the `file:///` URI scheme:
 
 ```markdown
 Готово: стенограмма текущей ветки сохранена здесь:
-[filename.txt](C:\absolute\path\filename.txt)
+[filename.txt](file:///C:/absolute/path/filename.txt)
 
-В ней сохранён разговор, а чтение файлов отмечено в соответствующих местах.
+В ней сохранён разговор, а чтение файлов и URL отмечено в соответствующих местах.
 Если понадобится полный журнал команд и результатов инструментов, могу отдельно
 сделать технический экспорт.
 ```
 
-Do not ask the user to choose a variant before creating the recovery transcript.
-Do not create a second file automatically.
+Do not ask the user to choose a variant before creating the recovery transcript. Do not create a second file automatically.
 
-## Recovery Transcript
+If `coverage_status` is `partial_thread`, say that the created file is partial and name the unavailable candidates.
+
+## Recovery Transcript (Default)
 
 The default export must:
 
 - preserve user, assistant, and subagent messages in chronological order;
-- preserve context-compaction markers;
-- replace confirmed file-content reads with one short `FILE READ` or `FILES
-  READ` marker at their chronological position between messages;
-- collapse repeated chunk reads of the same path within one interval between
-  messages, but show the path again if it is read in a later interval;
-- omit every other tool call and every tool result, including commands, Call
-  IDs, hashes, statuses, line ranges, and source-record metadata;
-- keep the verified thread ID and source rollout path so a later full technical
-  export can be created while that rollout still exists.
+- preserve context-compaction markers and their stored summary text;
+- replace confirmed file-content reads with one short `FILE READ` or `FILES READ` marker at their chronological position between messages;
+- replace confirmed URL reads with one short `URL READ` or `URLS READ` marker at their chronological position between messages;
+- collapse repeated reads of the same file/URL within one uninterrupted interval between messages;
+- omit every other tool call and raw tool output (commands, code patches, HTML dumps, console logs);
+- omit model thinking reasoning blocks by default;
+- exclude UI metadata injections (Antigravity's `<ADDITIONAL_METADATA>`, `<USER_SETTINGS_CHANGE>`, rules blocks; Codex's `<recommended_plugins>`, `<environment_context>`);
+- save the `.txt` in the active workspace root (or Desktop if unavailable).
 
-A file-read marker means that a supported operation accessed that file's
-content and returned without a detected failure. It does not certify that every
-line was read. Do not infer file reads from a path mention, directory listing,
-write, patch, hash, or other non-content operation.
+## Model Thinking Blocks (`--with-thinking`, Antigravity only)
 
-## Full Technical Export
-
-Create a full technical export only after the user explicitly asks for the
-full journal of commands and tool results:
+When running under Antigravity and the user explicitly requests thinking reasoning blocks:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\export-current-thread\scripts\export_current_thread.py" --full --json
+python "<skill-directory>\scripts\export_current_thread.py" --with-thinking --json
 ```
 
-The full export preserves supported invocation and textual result bodies. It
-is an explicit follow-up artifact, not an automatic fallback for a long or
-complex thread.
+This preserves model `[THINKING]` blocks alongside messages while still omitting raw tool execution payloads and noise. This flag is supported exclusively for Antigravity conversations.
 
-`--extract-call <CALL_ID>` remains available for a Call ID already known from a
-full technical export or another verified source. Check `pair_complete` and
-`missing_parts`, then delete temporary fragments with `--cleanup`.
+## Full Technical Export (`--full`)
 
-## Shared Behavior
+Create a full technical export only after the user explicitly asks for the full journal of commands and tool results:
 
-- Use `CODEX_THREAD_ID` as the current-thread source.
-- Read only `$CODEX_HOME/sessions` or `%USERPROFILE%\.codex\sessions`, plus `archived_sessions` only when a requested thread is archived.
-- Never edit, rewrite, normalize, or move original `rollout-*.jsonl` files.
-- Save the `.txt` in the first active workspace root from the thread context.
-- If no active workspace root is available, save the `.txt` on the user's Desktop.
-- Use supported `response_item` records as the canonical source for messages,
-  confirmed file reads, and full technical activity. Use only explicitly
-  allowed non-duplicating `event_msg` metadata.
-- Exclude system/developer messages, known Codex-injected user-content blocks,
-  hidden reasoning, token telemetry, unknown internal record types, and
-  explicitly typed binary content through deterministic code rules.
-- Do not use a model to summarize, clean, reformat, select relevant fragments, redact heuristically, or deduplicate by textual similarity.
-- Remove only structurally proven duplicate messages. In the recovery
-  transcript, additionally collapse repeated paths only inside one uninterrupted
-  file-reading interval between messages.
-- Preserve large textual tool results only in the explicit full export or a
-  requested single-call extraction. Replace known binary content with
-  available type, size, MIME, path, URL, or identifier metadata.
-- Write UTF-8 without BOM.
+```powershell
+python "<skill-directory>\scripts\export_current_thread.py" --full --json
+```
 
-## Failure Handling
+The full export preserves all supported tool calls, arguments, full textual tool results, thinking blocks, and technical events.
 
-- If the current thread id is unavailable, do not guess. Tell the user that Codex did not expose `CODEX_THREAD_ID` and ask them to rerun from an active Codex thread or provide a thread id.
-- If the rollout file cannot be found or verified, explain that the current thread log could not be matched.
-- If the export succeeds, do not paste the transcript into chat; only link the generated file.
+`--extract-call <CALL_ID>` remains available for Codex rollouts to inspect an isolated tool call and result pair.
+
+## Shared Boundaries & Integrity
+
+- Never edit, rewrite, normalize, or delete original log files (`transcript_full.jsonl`, `rollout-*.jsonl`).
+- Do not use a model to summarize, clean, reformat, select relevant fragments, redact heuristically, or deduplicate by textual similarity. All filtering is 100% deterministic code.
+- Write output UTF-8 without BOM with standard LF or system newlines.
+- If the current thread/conversation ID cannot be identified, report an honest error and do not guess.

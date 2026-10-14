@@ -65,7 +65,7 @@ Invoke `scripts/normalize_search_results.py` with one JSON object on stdin or as
 }
 ```
 
-Required discovery fields are `research_question`, `query`, `search_purpose`, `search_round`, `search_surface`, `search_outcome`, `searched_at`, and `raw_url`. `search_purpose` is `primary`, `repeat`, `verify`, or `contrarian`; `search_surface` is `native_codex` in this MVP. Optional metadata is preserved only when actually supplied. `resolved_url` means a redirect was observed. `accepted_canonical_url` means the coordinator has already judged the page's declared canonical suitable; do not pass an unverified declaration under this name.
+Required discovery fields are `research_question`, `query`, `search_purpose`, `search_round`, `search_surface`, `search_outcome`, `searched_at`, and `raw_url`. `search_purpose` is `primary`, `repeat`, `verify`, or `contrarian`; `search_surface` is `native_codex` in Codex or `native_antigravity` in Antigravity. Optional metadata is preserved only when actually supplied. `resolved_url` means a redirect was observed. `accepted_canonical_url` means the coordinator has already judged the page's declared canonical suitable; do not pass an unverified declaration under this name.
 
 The helper returns stable `search_attempt_id`, `discovery_id`, and `document_id` values, all discovery records, normalized working keys, URL groups, preferred candidates, and mechanical grouping reasons. It never fetches a page or makes a semantic duplicate decision.
 
@@ -118,7 +118,7 @@ raw_discoveries[]
   query
   search_purpose: primary | repeat | verify | contrarian
   search_round
-  search_surface: native_codex
+  search_surface: native_codex | native_antigravity
   search_outcome
   searched_at
   raw_url

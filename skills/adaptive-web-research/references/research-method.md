@@ -9,12 +9,12 @@ Write a short working brief containing:
 - decision or answer sought;
 - material inclusions and exclusions;
 - time, version, product, geography, jurisdiction, audience, and risk boundaries that matter;
-- source instructions and whether they set a hard boundary or a starting priority;
+- user source constraints (whether the user restricted or prioritized specific domains; if the user did not name domains, record `open-web keyword search` and never invent a domain list);
 - expected output type.
 
 Ask only for missing information that can materially change the result. Let research resolve safe factual uncertainty.
 
-Preserve the user's meaning rather than converting it into a required technical mode. "Use only these sources" is a hard boundary that cannot be widened silently; if it cannot support the requested answer, report the limitation and return the usable partial result or ask permission to widen it. "Start with" or "prioritize these sources" allows other suitable sources when needed. Ask the minimum needed question only when the distinction can materially change the result.
+Preserve the user's meaning rather than converting it into a required technical mode. "Use only these sources" is a hard boundary that cannot be widened silently; if it cannot support the requested answer, report the limitation and return the usable partial result or ask permission to widen it. "Start with" or "prioritize these sources" allows other suitable sources when needed. When the user gives no domain instructions, search across the open web by keywords and query angles, and never pre-filter queries by coordinator-guessed domain names. Ask the minimum needed question only when the distinction can materially change the result.
 
 ## Establish the temporal boundary
 
@@ -22,16 +22,13 @@ Treat a material fact as changeable when it concerns current prices, plans, feat
 
 For a historical question, pin the requested date or version. For a named stable document, verify that document rather than today's general state.
 
-## Choose direct search or reconnaissance
+## Choose direct search or reconnaissance (Stage A: Keyword Discovery)
 
-Use direct targeted search when all are known:
+Keep **Stage A (pre-search keyword discovery)** separate from **Stage B (post-search candidate selection)**:
 
-- the question to close;
-- what evidence would settle it;
-- the appropriate source class;
-- the material boundaries.
-
-Use preliminary reconnaissance when a term is ambiguous, the field structure may have changed, important candidate classes are unknown, or early decomposition could omit an entire class. Reconnaissance maps the territory; it is not evidence until the resulting pages are read.
+- Use **preliminary reconnaissance** (open-web keyword queries across distinct angles without domain filters) for news, releases, unannounced or emerging products, open-ended questions, or whenever terminology, field structure, candidate set, or where evidence lives on the web is not known in advance. Reconnaissance maps the territory; it is not evidence until the resulting pages are read.
+- Use **direct targeted search** when the exact question, terminology, evidence type, and specific canonical document or registry are already known.
+- During Stage A, search by keywords, entities, and query angles across the open web. Do not restrict discovery with `site:` operators, guessed domain lists, or the `search_web` `domain` parameter unless the user explicitly constrained the domains or a specific branch is verifying one known official registry.
 
 ## Use four search purposes conditionally
 
@@ -57,18 +54,20 @@ Complete the bounded primary acquisition for the material questions that bear on
 
 Do not wait indefinitely for a failed branch: its explicit gap is part of the merged picture. Work on a materially unrelated decision may continue independently.
 
-## Select sources for their role
+## Select sources for their role after search (Stage B: Candidate Selection)
 
-Prioritize by contribution to the current question, not merely rank or domain fame:
+Apply source-role filtering **after** native search results have been returned and normalized through `scripts/normalize_search_results.py`, when choosing which discovered URLs to open and read — not by guessing website domains before searching.
+
+Prioritize discovered URL candidates by contribution to the current question, not merely search rank or domain fame:
 
 1. direct relevance to the evidence target;
 2. fit to date, version, plan, geography, or jurisdiction;
-3. source type appropriate to the claim;
+3. source role appropriate to the claim;
 4. accessible content that can be read;
 5. ability to close a gap or contradiction;
 6. additional value beyond what is already read.
 
-Use official documents for an organization's own terms and status, primary papers or datasets for methods and results, independent research for comparative effects, user reports for experience and failure modes, and secondary material for orientation and leads. A source can be primary yet interested; preserve that limitation.
+Use official documents for an organization's own terms and status, primary papers, repositories, or datasets for methods, benchmarks, and technical traces, independent research or reputable reporting for comparative effects and investigative context, user reports for experience and failure modes, and secondary material for orientation and leads. Filter out SEO clickbait and unverified rewrites. A source can be primary yet interested; preserve that limitation.
 
 ## Read before using
 

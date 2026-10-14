@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check or install the bundled adaptive-research custom agents."""
+"""Check or install the bundled adaptive-research custom agents for Codex or Antigravity."""
 
 from __future__ import annotations
 
@@ -12,10 +12,31 @@ import sys
 import tomllib
 
 
-EXPECTED = {
+EXPECTED_CODEX = {
     "research-worker.toml": ("research-worker", "gpt-6-luna"),
     "research-analyst.toml": ("research-analyst", "gpt-6-sol"),
     "research-escalation.toml": ("research-escalation", "gpt-5.6-sol"),
+}
+
+EXPECTED_ANTIGRAVITY = {
+    "research-worker.md": (
+        "research-worker",
+        "flash",
+        "eager",
+        ["search_web", "read_url_content", "view_file", "run_command"],
+    ),
+    "research-analyst.md": (
+        "research-analyst",
+        "inherit",
+        "off",
+        ["read_url_content", "view_file"],
+    ),
+    "research-escalation.md": (
+        "research-escalation",
+        "pro",
+        "off",
+        ["read_url_content", "view_file"],
+    ),
 }
 
 
@@ -23,12 +44,31 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def detect_host(requested: str) -> str:
+    if requested in ("codex", "antigravity"):
+        return requested
+    if any(k.startswith("ANTIGRAVITY_") for k in os.environ):
+        return "antigravity"
+    return "codex"
+
+
 def codex_home() -> Path:
     configured = os.environ.get("CODEX_HOME", "").strip()
     return Path(configured).expanduser() if configured else Path.home() / ".codex"
 
 
-def validate_template(path: Path, expected_name: str, expected_model: str) -> list[str]:
+def antigravity_home() -> Path:
+    configured = os.environ.get("ANTIGRAVITY_CONFIG_HOME", "").strip()
+    return (
+        Path(configured).expanduser()
+        if configured
+        else Path.home() / ".gemini" / "config"
+    )
+
+
+def validate_codex_template(
+    path: Path, expected_name: str, expected_model: str
+) -> list[str]:
     errors: list[str] = []
     try:
         data = tomllib.loads(path.read_text(encoding="utf-8"))
@@ -47,19 +87,120 @@ def validate_template(path: Path, expected_name: str, expected_model: str) -> li
     return errors
 
 
-def inspect(source_dir: Path, target_dir: Path) -> dict[str, object]:
+def parse_simple_frontmatter(text: str) -> tuple[dict[str, object], str] | None:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    end_idx = None
+    for idx in range(1, len(lines)):
+        if lines[idx].strip() == "---":
+            end_idx = idx
+            break
+    if end_idx is None:
+        return None
+
+    meta: dict[str, object] = {}
+    current_list_key: str | None = None
+    for raw_line in lines[1:end_idx]:
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.startswith("- ") and current_list_key is not None:
+            items = meta.setdefault(current_list_key, [])
+            if isinstance(items, list):
+                items.append(stripped[2:].strip().strip("\"'"))
+            continue
+        current_list_key = None
+        if ":" not in stripped:
+            return None
+        key, val = stripped.split(":", 1)
+        key = key.strip()
+        val = val.strip()
+        if not val:
+            meta[key] = []
+            current_list_key = key
+        elif val.startswith("[") and val.endswith("]"):
+            inner = val[1:-1].strip()
+            meta[key] = (
+                [item.strip().strip("\"'") for item in inner.split(",") if item.strip()]
+                if inner
+                else []
+            )
+        else:
+            is_quoted = (val.startswith('"') and val.endswith('"')) or (
+                val.startswith("'") and val.endswith("'")
+            )
+            if not is_quoted and ": " in val:
+                return None
+            meta[key] = val[1:-1] if is_quoted else val
+
+    body = "\n".join(lines[end_idx + 1 :]).strip()
+    return meta, body
+
+
+def validate_antigravity_template(
+    path: Path,
+    expected_name: str,
+    expected_model: str,
+    expected_policy: str,
+    expected_tools: list[str],
+) -> list[str]:
+    errors: list[str] = []
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [f"cannot read UTF-8 Markdown: {exc}"]
+
+    parsed = parse_simple_frontmatter(text)
+    if parsed is None:
+        return ["missing or invalid YAML frontmatter"]
+    meta, body = parsed
+
+    if not isinstance(meta.get("name"), str) or meta.get("name") != expected_name:
+        errors.append(f"name must be {expected_name!r}")
+    if not isinstance(meta.get("description"), str) or not str(meta["description"]).strip():
+        errors.append("description must be a non-empty string")
+    if meta.get("mainAgent") != "false":
+        errors.append("mainAgent must be false")
+    if meta.get("subagent") != "true":
+        errors.append("subagent must be true")
+    if meta.get("model") != expected_model:
+        errors.append(f"model must be {expected_model!r}")
+    if meta.get("commandExecutionPolicy") != expected_policy:
+        errors.append(f"commandExecutionPolicy must be {expected_policy!r}")
+    if meta.get("tools") != expected_tools:
+        errors.append(f"tools must be {expected_tools!r}")
+    if not body:
+        errors.append("markdown body (system instructions) must be non-empty")
+    return errors
+
+
+def inspect(source_dir: Path, target_dir: Path, host: str) -> dict[str, object]:
     matching: list[str] = []
     missing: list[str] = []
     conflicts: list[str] = []
     invalid_sources: dict[str, list[str]] = {}
     source_bytes: dict[str, bytes] = {}
 
-    for filename, (expected_name, expected_model) in EXPECTED.items():
+    filenames = (
+        list(EXPECTED_ANTIGRAVITY.keys())
+        if host == "antigravity"
+        else list(EXPECTED_CODEX.keys())
+    )
+
+    for filename in filenames:
         source = source_dir / filename
         if not source.is_file():
             invalid_sources[filename] = ["bundled template is missing"]
             continue
-        errors = validate_template(source, expected_name, expected_model)
+        if host == "antigravity":
+            exp_name, exp_model, exp_policy, exp_tools = EXPECTED_ANTIGRAVITY[filename]
+            errors = validate_antigravity_template(
+                source, exp_name, exp_model, exp_policy, exp_tools
+            )
+        else:
+            exp_name, exp_model = EXPECTED_CODEX[filename]
+            errors = validate_codex_template(source, exp_name, exp_model)
         if errors:
             invalid_sources[filename] = errors
             continue
@@ -96,7 +237,9 @@ def inspect(source_dir: Path, target_dir: Path) -> dict[str, object]:
 
     return {
         "status": status,
+        "host": host,
         "codex_home": str(target_dir.parent),
+        "agent_home": str(target_dir.parent),
         "target_dir": str(target_dir),
         "matching": matching,
         "missing": missing,
@@ -111,7 +254,9 @@ def public_result(
 ) -> dict[str, object]:
     return {
         "status": result["status"],
+        "host": result["host"],
         "codex_home": result["codex_home"],
+        "agent_home": result["agent_home"],
         "target_dir": result["target_dir"],
         "matching": result["matching"],
         "missing": result["missing"],
@@ -123,7 +268,7 @@ def public_result(
 
 
 def install_missing(
-    source_dir: Path, target_dir: Path, before: dict[str, object]
+    source_dir: Path, target_dir: Path, before: dict[str, object], host: str
 ) -> tuple[dict[str, object], list[str]]:
     if before["status"] != "setup_required":
         return before, []
@@ -157,7 +302,7 @@ def install_missing(
             f"installation failed without overwriting existing files: {exc}"
         ) from exc
 
-    after = inspect(source_dir, target_dir)
+    after = inspect(source_dir, target_dir, host)
     installed = [path.name for path in created]
     if after["status"] != "ready":
         for path in reversed(created):
@@ -179,6 +324,12 @@ def parse_args() -> argparse.Namespace:
         "--install-missing", action="store_true", help="Install only absent bundled agents"
     )
     parser.add_argument(
+        "--host",
+        choices=("auto", "codex", "antigravity"),
+        default="auto",
+        help="Target host environment (default: auto)",
+    )
+    parser.add_argument(
         "--user-approved", action="store_true", help="Confirm explicit user permission"
     )
     parser.add_argument("--json", action="store_true", help="Emit JSON")
@@ -194,9 +345,12 @@ def emit(payload: dict[str, object], as_json: bool) -> None:
 
 def main() -> int:
     args = parse_args()
+    host = detect_host(args.host)
     source_dir = Path(__file__).resolve().parent.parent / "assets" / "custom-agents"
-    target_dir = codex_home() / "agents"
-    before = inspect(source_dir, target_dir)
+    target_dir = (
+        antigravity_home() / "agents" if host == "antigravity" else codex_home() / "agents"
+    )
+    before = inspect(source_dir, target_dir, host)
 
     if args.check:
         emit(public_result(before), args.json)
@@ -213,9 +367,9 @@ def main() -> int:
         return 2
 
     try:
-        after, installed = install_missing(source_dir, target_dir, before)
+        after, installed = install_missing(source_dir, target_dir, before, host)
     except RuntimeError as exc:
-        payload = public_result(inspect(source_dir, target_dir))
+        payload = public_result(inspect(source_dir, target_dir, host))
         payload["error"] = str(exc)
         emit(payload, args.json)
         return 2
